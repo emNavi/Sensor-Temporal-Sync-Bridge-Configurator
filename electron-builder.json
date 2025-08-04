@@ -1,0 +1,42 @@
+{
+    "appId": "com.electron.app",
+    "directories": {
+        "output": "dist"
+    },
+
+    "nsis": {
+        "oneClick": false,
+        "perMachine": false,
+        "allowToChangeInstallationDirectory": true,
+        "shortcutName": "sensor bridge configurator"
+    },
+    "win": {
+        "target": "nsis"
+    },
+    "linux":  {
+        "target": "deb",
+        "description": "sensor bridge configurator(electron version)",
+        "maintainer": "emnavi <common@emnavi.tech>" 
+
+    },
+    "files": [
+        {
+            "from": "build/main",
+            "to": "main",
+            "filter": ["**/*"]
+        },
+        {
+            "from": "build/renderer",
+            "to": "renderer",
+            "filter": ["**/*"]
+        },
+        {
+            "from": "src/main/static",
+            "to": "static",
+            "filter": ["**/*"]
+        },
+	"!build",
+	"!dist",
+	"!scripts"
+    ]
+}
