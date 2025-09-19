@@ -41,6 +41,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.page_main_layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;       /* 占满父容器高度 */
+    box-sizing: border-box;
+    padding: 12px;
+}
 .log-container {
     padding: 10px;
     width: 100%;

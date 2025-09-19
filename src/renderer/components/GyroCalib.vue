@@ -1,12 +1,21 @@
 <template>
     <div class="page_main_layout">
-        <p class="page_title">Gyroscope Calibration</p>
-        <el-divider/>
-
-        <p> 按照以下姿态进行校准，不区分先后顺序</p>
+        <p class="page_title">陀螺仪校准</p>
+        <el-divider />
+        <p> 请水平放置设备，点击按钮开始校准 </p>
+        
         <el-row :gutter="20">
             <el-col v-for="(step, index) in steps" :key="index" :span="8">
-                <img :src="step.image" :alt="step.title" style="width: 30.3vh; border: 3px solid gray; border-radius: 10px;" />
+                <img
+                    :src="step.image"
+                    class="calib-img"
+                    :class="{
+                        'calib-pending': step.status === 'pending',
+                        'calib-active': step.status === 'active',
+                        'calib-done': step.status === 'done'
+                    }"
+                />
+                <p style="text-align: center;">{{ step.title }}</p>
             </el-col>
         </el-row>
 
@@ -17,101 +26,81 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import accel_down_pic from '../assets/calibration/accel_down.png'
 
-import accel_back_pic from '../assets/calibration/accel_back.png';
-import accel_down_pic from '../assets/calibration/accel_down.png';
-import accel_front_pic from '../assets/calibration/accel_front.png';
-import accel_left_pic from '../assets/calibration/accel_left.png';
-import accel_right_pic from '../assets/calibration/accel_right.png';
-import accel_up_pic from '../assets/calibration/accel_up.png';
-
-
-const isCalibrating = ref(false);
+const isCalibrating = ref(false)
 const steps = ref([
-    {
-        title: "Place Down",
-        image: accel_down_pic,
-    },
-    
-]);
-const imageModules = import.meta.glob('./assets/calibration/*', {
-  eager: true,
-  as: 'url'
-});
-function getImageUrl(filename: string): string | undefined {
-  const fullPath = `/src/assets/calibration/${filename}`;
-  console.log(fullPath);
-  console.log(imageModules[fullPath]);
-  return imageModules[fullPath];
+  { dir: '水平放置', image: accel_down_pic, status: 'pending' as 'pending' | 'active' | 'done' },
+])
+
+/** 启动校准 */
+const startGyroCalibration = () => {
+  isCalibrating.value = true
+  steps.value.forEach(s => (s.status = 'pending'))
+
+  const calibrationCommand = {
+    params: { gyro: true, acc: false, mag: false, baro: false },
+  }
+  console.log('Sending calibration command:', calibrationCommand)
+  window.electronAPI.triggerCalib(calibrationCommand)
 }
 
-const startGyroCalibration = (): void => {
-    isCalibrating.value = true;
-    // Simulate calibration process
-    const calibrationCommand = {
-        params: {
-            gyro: true,
-            accel: false,
-            mag: false,
-            baro: false,
-        },
-    };
-    // console.log("Sending calibration command:", calibrationCommand);
-    // window.electronAPI.sendCommand(calibrationCommand);
-    window.electronAPI.triggerCalib(calibrationCommand);
-    setTimeout(() => {
-        isCalibrating.value = false;
-        alert("Calibration Complete!");
-    }, 3000);
-};
+onMounted(() => {
+  window.electronAPI.onGyroCalibUpdate(handleUpdate)
+})
+
+/** 提取更新逻辑，避免重复注册 */
+const handleUpdate = (update: string) => {
+  console.log('✅ Received calibration update:', update)
+
+  if (update.startsWith('GYRO_CAL:START')) {
+    steps.value[0].status = 'active'
+  }
+
+  if (update.startsWith('GYRO_CAL:DONE')) {
+    steps.value[0].status = 'done'
+  }
+
+  if (update.includes('SUCCESS')) {
+    isCalibrating.value = false
+    alert('✅ 陀螺仪校准成功！')
+  }
+
+  if (update.includes('FAIL')) {
+    isCalibrating.value = false
+    steps.value[0].status = 'pending'
+    alert('❌ 陀螺仪校准失败，请重试！')
+  }
+}
+onBeforeUnmount(() => {
+  // 确保移除监听，避免重复触发
+  window.electronAPI.removeGyroCalibUpdateListener?.()
+})
+
 </script>
 
 <style scoped>
-.gyro-calib {
-    text-align: center;
-    padding: 5px;
-    padding-left: 20px;
-    width: 100%;
-
-}
-
-.calibration-steps {
+.page_main_layout {
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin: 20px 0;
+    flex-direction: column;
+    height: 100%;       /* 占满父容器高度 */
+    box-sizing: border-box;
+    padding: 12px;
 }
-
-.step {
-    text-align: center;
+.calib-img {
+    width: 30.3vh;
+    border: 3px solid gray;
+    border-radius: 10px;
+    transition: border-color 0.5s ease;
 }
-
-.step img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
+.calib-pending {
+    border-color: rgb(243, 35, 35);
 }
-
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
+.calib-active {
+    border-color: orange;
 }
-
-
-.el-row {
-  margin-bottom: 20px;
-}
-.el-row:last-child {
-  margin-bottom: 0;
-}
-.el-col {
-  border-radius: 4px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
+.calib-done {
+    border-color: green;
 }
 </style>

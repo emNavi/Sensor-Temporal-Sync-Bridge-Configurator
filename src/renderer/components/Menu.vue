@@ -1,60 +1,75 @@
 <template>
-<el-aside width="200px" style="background-color: #f2f2f2; padding: 10px; height: 80vh;">
-    <el-menu 
-        default-active="1" 
-        class="el-menu-vertical-demo" 
-        @select="handleMenuSelect"
-    >
-        <el-menu-item index="1">
-            <el-icon><SuccessFilled /></el-icon>
-            <span>总览</span>
-        </el-menu-item>
-        <el-menu-item index="2">
-            <el-icon><WarningFilled /></el-icon>
-            <span>Gyro校准</span>
-        </el-menu-item>
-        <el-menu-item index="3">
-            <el-icon><WarningFilled /></el-icon>
-            <span>Acc校准</span>
-        </el-menu-item>
-        <el-menu-item index="4">
-            <el-icon><CircleCloseFilled /></el-icon>
-            <span>Log</span>
-        </el-menu-item>
-        <el-menu-item index="5">
-            <el-icon><CircleCloseFilled /></el-icon>
-            <span>设置</span>
-        </el-menu-item>
-    </el-menu>
-</el-aside>
-
+    <el-aside width="200px" style="background-color: #f2f2f2; padding: 10px; height: 80vh;">
+        <el-menu 
+            :default-active="route.path"   
+            class="el-menu-vertical-demo"
+            router                        
+        >
+            <el-menu-item index="/">
+                <el-icon><House /></el-icon>
+                <span>总览</span>
+            </el-menu-item>
+            <el-menu-item index="/firmware">
+                <el-icon><Switch /></el-icon>
+                <span>固件</span>
+            </el-menu-item>
+            <el-menu-item index="/gyro_calib">
+                <el-icon><Aim /></el-icon>
+                <span>Gyro校准</span>
+            </el-menu-item>
+            <el-menu-item index="/acc_calib">
+                <el-icon><Aim /></el-icon>
+                <span>Acc校准</span>
+            </el-menu-item>
+            <!-- <el-menu-item index="/mag_calib">
+                <el-icon><Aim /></el-icon>
+                <span>Mag校准</span>
+            </el-menu-item> -->
+            <el-menu-item index="/log">
+                <el-icon><ChatDotSquare /></el-icon>
+                <span>Log</span>
+            </el-menu-item>
+            <el-menu-item index="/setting">
+                <el-icon><SetUp /></el-icon>
+                <span>设置</span>
+            </el-menu-item>
+        </el-menu>
+    </el-aside>
 </template>
+
 <script setup>
+import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue';
-import { SuccessFilled, WarningFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import { House, Switch, SuccessFilled, WarningFilled, CircleCloseFilled, Aim, ChatDotSquare, SetUp } from '@element-plus/icons-vue'
 import { de } from 'element-plus/es/locales.mjs';
 import { ElNotification } from 'element-plus'
 
 
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
+const route = useRoute()
 
 const handleMenuSelect = (index) => {
     switch (index) {
         case '1':
             router.push('/');
             break;
-        case '2':
+        case '3':
             router.push('/gyro_calib');
             break;
-        case '3':
-            router.push('/acc_calib');
+        case '2':
+            router.push('/firmware');
             break;
         case '4':
-            router.push('/log');
+            router.push('/acc_calib');
             break;
         case '5':
+            router.push('/mag_calib');
+            break;
+        case '6':
+            router.push('/log');
+            break;
+        case '7':
             router.push('/setting');
             break;
         default:

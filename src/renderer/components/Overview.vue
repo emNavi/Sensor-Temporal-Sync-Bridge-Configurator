@@ -1,25 +1,47 @@
 <template>
     <div class="overview">
-        <!-- <h1>传感器总览</h1> -->
-        <p class="page_title">传感器状态</p>
+        <!-- <h1>系统总览</h1> -->
+        <p class="page_title">系统状态</p>
         <el-divider/>
 
         <div class="sensor-list">
-            <div v-for="sensor in sensors" :key="sensor.id" class="sensor-item">
+            <!-- 单独显示系统时间 -->
+            <div v-if="systemTimeSensor" class="sensor-item">
+                <h2>{{ systemTimeSensor.name }}</h2>
+                <div v-if="Object.keys(systemTimeSensor.metadata).length">
+                <p v-for="(value, key) in systemTimeSensor.metadata" :key="key">
+                    <span style="display: inline-block; width: 100px; font-weight: bold;">
+                    {{ systemTimeSensor.metadescribe[key] }}:
+                    </span>
+                    <span>{{ value }}</span>
+                </p>
+                </div>
+            </div>
+            </div>
+
+            <div class="sensor-list">
+            <!-- 其余传感器（IMU、气压计、磁力计、GPS） -->
+            <div v-for="sensor in otherSensors" :key="sensor.id" class="sensor-item">
                 <h2>{{ sensor.name }}</h2>
                 <div v-if="Object.keys(sensor.metadata).length">
-                    <p v-for="(value, key) in sensor.metadata" :key="key">
-                        <span style="display: inline-block; width: 100px; font-weight: bold;">{{ sensor.metadescribe[key] }}:</span> 
-                        <span>{{ value }}</span>
-                    </p>
+                <p v-for="(value, key) in sensor.metadata" :key="key">
+                    <span style="display: inline-block; width: 100px; font-weight: bold;">
+                    {{ sensor.metadescribe[key] }}:
+                    </span>
+                    <span>{{ value }}</span>
+                </p>
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
+
+const systemTimeSensor = computed(() => sensors.find(s => s.name === "系统时间"));
+const otherSensors = computed(() => sensors.filter(s => s.name !== "系统时间"));
 
 interface Sensor {
     id: number;
@@ -63,11 +85,42 @@ const sensors = reactive<Sensor[]>([
     { 
         id: 3, 
         name: "气压计", 
-        type: "压力", 
-        status: "正常", 
-        value: "101.3 kPa", 
-        metadata: {}
-    }
+        metadata: {
+            pressure: "hPa", 
+            altitude: "m"
+        },
+        metadescribe: {
+            pressure: "气压",
+            altitude: "海拔",
+        }
+    },
+    // {
+    //     id: 4, 
+    //     name: "磁力计", 
+    //     metadata: {
+    //         magneticFieldX: "30 µT", 
+    //         magneticFieldY: "-20 µT", 
+    //         magneticFieldZ: "50 µT"
+    //     },
+    //     metadescribe: {
+    //         magneticFieldX: "X 分量",
+    //         magneticFieldY: "Y 分量",
+    //         magneticFieldZ: "Z 分量",
+    //     }
+    // },
+    // { 
+    //     id: 5, 
+    //     name: "GPS", 
+    //     metadata: {
+    //         latitude: "未接入", 
+    //         longitude: "未接入", 
+    //     },
+    //     metadescribe: {
+    //         latitude: "纬度",
+    //         longitude: "经度",
+    //     }
+    // }
+    
 ]);
 
 interface TimeUpdateData {
@@ -78,6 +131,7 @@ interface TimeUpdateData {
 declare global {
     interface ElectronApi {
         onTimeUpdate(callback: (data: TimeUpdateData) => void): void;
+        onHighresImu(callback: (data: any) => void): void;
     }
 }
 
@@ -92,7 +146,25 @@ window.electronAPI.onTimeUpdate((data: TimeUpdateData) => {
         systemTimeSensor.metadata.startTime = `${hours}小时 ${minutes}分钟 ${seconds}秒`;
     }
 });
-
+window.electronAPI.onHighresImu((data: any) => {
+    //console.log("onHighresImu");
+    const imuSensor = sensors.find(sensor => sensor.name === "IMU");
+    if (imuSensor) {
+        imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
+        imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
+    }
+    const baroSensor = sensors.find(sensor => sensor.name === "气压计");
+    if (baroSensor) {
+        baroSensor.metadata.pressure = `${data.baro.abs_pressure.toFixed(2)} hPa`;
+        baroSensor.metadata.altitude = `${data.baro.pressure_alti.toFixed(1)} m`;
+    }
+    const magSensor = sensors.find(sensor => sensor.name === "磁力计");
+    if (magSensor) {
+        magSensor.metadata.magneticFieldX = `${data.mag.x.toFixed(2)} µT`;
+        magSensor.metadata.magneticFieldY = `${data.mag.y.toFixed(2)} µT`;
+        magSensor.metadata.magneticFieldZ = `${data.mag.z.toFixed(2)} µT`;
+    }
+});
 
 </script>
 
@@ -125,6 +197,8 @@ window.electronAPI.onTimeUpdate((data: TimeUpdateData) => {
     margin: 5px 0;
     font-size: 14px;
 }
-
+.sensor-list + .sensor-list {
+  margin-top: 30px; /* 两行之间的间隔 */
+}
 
 </style>
