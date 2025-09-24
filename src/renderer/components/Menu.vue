@@ -31,7 +31,7 @@
             </el-menu-item>
             <el-menu-item index="/setting">
                 <el-icon><SetUp /></el-icon>
-                <span>设置</span>
+                <span>配置</span>
             </el-menu-item>
         </el-menu>
     </el-aside>

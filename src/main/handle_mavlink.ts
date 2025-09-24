@@ -14,7 +14,7 @@ const REGISTRY = {
 
 let device_online = false;
 let last_heartbeat_time = 0;
-
+let current_device_id: number | null = null; // 当前连接的设备ID
 
 let baseUtcUs = BigInt(Date.now()) * 1000n;
 const baseHrTime = process.hrtime(); // 秒 + 纳秒
@@ -34,6 +34,7 @@ export function is_device_online() {
     const timeDiff = currentTime - last_heartbeat_time;
     if (timeDiff > 2000) { 
       device_online = false;
+      current_device_id = null; // 设备掉线，重置设备ID
       console.log(`Time since last HEARTBEAT: ${timeDiff} ms`);
     }
     else{
@@ -42,14 +43,24 @@ export function is_device_online() {
     return device_online;
 }
 export function handle_mavlink_msg(packet,mainWindow,port){
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      console.warn('[electron] mainWindow 不存在或已销毁，丢弃消息');
+      return;
+    }
     const clazz = REGISTRY[packet.header.msgid]
     if (clazz) {
       const data = packet.protocol.data(packet.payload, clazz)
       if(clazz.MSG_NAME === "HEARTBEAT"){
-        const timestamp = new Date().toISOString();
+        // const timestamp = new Date().toISOString();
         last_heartbeat_time = Date.now();
         device_online = true;
-        
+        current_device_id = packet.header.sysid; // 更新当前设备ID
+
+        // 通知前端有心跳 + ID
+        mainWindow.webContents.send('heartbeat', {
+          id: current_device_id,
+          timestamp: new Date().toISOString(),
+        });
         // console.log(`HEARTBEAT received at ${timestamp}`);
       }
       else if (clazz.MSG_NAME === "STATUSTEXT") {

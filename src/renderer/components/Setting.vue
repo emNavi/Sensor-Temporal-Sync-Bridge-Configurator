@@ -3,7 +3,7 @@
         <el-card>
             <template #header>
                 <div class="card-header">
-                    <h2>设置</h2>
+                    <h2>配置</h2>
                 </div>
             </template>
             
