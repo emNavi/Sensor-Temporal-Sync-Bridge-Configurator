@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 10,
+            "activePatchIndex": 16,
             "patches": [
                 {
                     "date": 1758616094150,
@@ -48,6 +48,30 @@
                 {
                     "date": 1758696926702,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -50,9 +50,9 @@\n     const clazz = REGISTRY[packet.header.msgid]\n     if (clazz) {\n       const data = packet.protocol.data(packet.payload, clazz)\n       if(clazz.MSG_NAME === \"HEARTBEAT\"){\n-        const timestamp = new Date().toISOString();\n+        // const timestamp = new Date().toISOString();\n         last_heartbeat_time = Date.now();\n         device_online = true;\n         current_device_id = packet.header.sysid; // 更新当前设备ID\n \n"
+                },
+                {
+                    "date": 1758769472821,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -181,8 +181,9 @@\n   msg.messageId = messageId;\n   msg.intervalUs = intervalUs;\n   send(port, msg, new MavLinkProtocolV2());\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n+  console.log(msg);\n }\n \n export function send_upgrade_request(port) {\n   const msg = new common.CommandInt();\n"
+                },
+                {
+                    "date": 1758780753553,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -184,8 +184,22 @@\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n   console.log(msg);\n }\n \n+export function send_cam_trigger_mode(port, mode, intervalUs) {\n+  const msg = new common.CommandInt();\n+  msg.targetSystem = 1;\n+  msg.targetComponent = 1;\n+  msg.command = 206; \n+  msg._param1 = mode;  // 0: disable, 1: trigger once, 2: trigger continuously\n+  msg._param2 = intervalUs;  \n+  msg._param3 = 0;\n+  msg._param4 = 0;\n+  if(port){\n+    console.log(\"Sending camera trigger mode...\");\n+    send(port, msg, new MavLinkProtocolV2());\n+  }\n+}\n export function send_upgrade_request(port) {\n   const msg = new common.CommandInt();\n   msg.targetSystem = 1;\n   msg.targetComponent = 1;\n"
+                },
+                {
+                    "date": 1758780854634,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -184,16 +184,16 @@\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n   console.log(msg);\n }\n \n-export function send_cam_trigger_mode(port, mode, intervalUs) {\n+export function send_cam_trigger_mode(port, mode, intervalUs, trigger) {\n   const msg = new common.CommandInt();\n   msg.targetSystem = 1;\n   msg.targetComponent = 1;\n   msg.command = 206; \n   msg._param1 = mode;  // 0: disable, 1: trigger once, 2: trigger continuously\n   msg._param2 = intervalUs;  \n-  msg._param3 = 0;\n+  msg._param3 = trigger;\n   msg._param4 = 0;\n   if(port){\n     console.log(\"Sending camera trigger mode...\");\n     send(port, msg, new MavLinkProtocolV2());\n"
+                },
+                {
+                    "date": 1758780905623,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -184,16 +184,16 @@\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n   console.log(msg);\n }\n \n-export function send_cam_trigger_mode(port, mode, intervalUs, trigger) {\n+export function send_cam_trigger_mode(port, continuously, intervalUs, trigger) {\n   const msg = new common.CommandInt();\n   msg.targetSystem = 1;\n   msg.targetComponent = 1;\n   msg.command = 206; \n-  msg._param1 = mode;  // 0: disable, 1: trigger once, 2: trigger continuously\n+  msg._param1 = continuously;  // 0: disable, 1: trigger continuously\n   msg._param2 = intervalUs;  \n-  msg._param3 = trigger;\n+  msg._param3 = trigger;  // 0: disable, 1: trigger once\n   msg._param4 = 0;\n   if(port){\n     console.log(\"Sending camera trigger mode...\");\n     send(port, msg, new MavLinkProtocolV2());\n"
+                },
+                {
+                    "date": 1758785644109,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -184,15 +184,15 @@\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n   console.log(msg);\n }\n \n-export function send_cam_trigger_mode(port, continuously, intervalUs, trigger) {\n+export function send_cam_trigger_mode(port, continuously, frame_duration_ms, trigger) {\n   const msg = new common.CommandInt();\n   msg.targetSystem = 1;\n   msg.targetComponent = 1;\n   msg.command = 206; \n   msg._param1 = continuously;  // 0: disable, 1: trigger continuously\n-  msg._param2 = intervalUs;  \n+  msg._param2 = frame_duration_ms;  \n   msg._param3 = trigger;  // 0: disable, 1: trigger once\n   msg._param4 = 0;\n   if(port){\n     console.log(\"Sending camera trigger mode...\");\n"
+                },
+                {
+                    "date": 1759041843022,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -184,16 +184,16 @@\n   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);\n   console.log(msg);\n }\n \n-export function send_cam_trigger_mode(port, continuously, frame_duration_ms, trigger) {\n+export function send_cam_trigger_mode(port, continuously, frame_duration_ms, trigger_mode) {\n   const msg = new common.CommandInt();\n   msg.targetSystem = 1;\n   msg.targetComponent = 1;\n   msg.command = 206; \n   msg._param1 = continuously;  // 0: disable, 1: trigger continuously\n   msg._param2 = frame_duration_ms;  \n-  msg._param3 = trigger;  // 0: disable, 1: trigger once\n+  msg._param3 = trigger_mode;  // 0: disable, 1: trigger once\n   msg._param4 = 0;\n   if(port){\n     console.log(\"Sending camera trigger mode...\");\n     send(port, msg, new MavLinkProtocolV2());\n"
                 }
             ],
             "date": 1758616094150,

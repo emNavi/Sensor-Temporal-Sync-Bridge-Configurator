@@ -37,4 +37,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),
   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on("flash-status", (_, msg, type) => callback(msg, type)) ,
 
+  // camera
+  sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),
+  onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),
+
 })

@@ -182,8 +182,23 @@ export function send_cam_trigger_interval(port, messageId, intervalUs) {
   msg.intervalUs = intervalUs;
   send(port, msg, new MavLinkProtocolV2());
   console.log(`Sent MESSAGE_INTERVAL for message ID ${messageId} with interval ${intervalUs} us`);
+  console.log(msg);
 }
 
+export function send_cam_trigger_mode(port, continuously, frame_duration_ms, trigger_mode) {
+  const msg = new common.CommandInt();
+  msg.targetSystem = 1;
+  msg.targetComponent = 1;
+  msg.command = 206; 
+  msg._param1 = continuously;  // 0: disable, 1: trigger continuously
+  msg._param2 = frame_duration_ms;  
+  msg._param3 = trigger_mode;  // 0: disable, 1: trigger once
+  msg._param4 = 0;
+  if(port){
+    console.log("Sending camera trigger mode...");
+    send(port, msg, new MavLinkProtocolV2());
+  }
+}
 export function send_upgrade_request(port) {
   const msg = new common.CommandInt();
   msg.targetSystem = 1;

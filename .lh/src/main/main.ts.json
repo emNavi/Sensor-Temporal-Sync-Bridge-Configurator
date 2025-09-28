@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 44,
+            "activePatchIndex": 56,
             "patches": [
                 {
                     "date": 1758605242207,
@@ -184,6 +184,54 @@
                 {
                     "date": 1758698195113,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,8 +11,9 @@\n let heartbeatInterval: NodeJS.Timeout | null = null;\n \n async function listPorts(): Promise<{ path: string; friendlyName?: string }[]> {\n   const platform = os.platform();\n+  console.log(`Listing ports on platform: ${platform}`);\n   if (platform === 'win32') {\n     const ports = await SerialPort.list();\n     return ports.map(p => ({\n       path: p.path,\n"
+                },
+                {
+                    "date": 1758706332768,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -168,8 +168,25 @@\n   ipcMain.on('cancel-calib', () => {\n     if (port) send_sensor_calib(port, false, false, false, false);\n   });\n \n+  ipcMain.on('send-camera-command', (_event, message) => {\n+    if (!port) return;\n+\n+    switch (message.cmd) {\n+      case 'trigger':\n+\n+        break;\n+      case 'pause':\n+\n+        break;\n+      case 'set-fps':\n+        const interval = 1.0 / message.fps;\n+\n+        break;\n+    }\n+  });\n+\n   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {\n     callback({\n       responseHeaders: {\n         ...details.responseHeaders,\n"
+                },
+                {
+                    "date": 1758706376988,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,16 +173,16 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-\n+        console.log('Sending trigger command');\n         break;\n       case 'pause':\n-\n+        console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const interval = 1.0 / message.fps;\n-\n+        console.log(`Setting camera FPS to ${message.fps}, interval: ${interval}s`);\n         break;\n     }\n   });\n \n"
+                },
+                {
+                    "date": 1758769520265,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -180,8 +180,9 @@\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const interval = 1.0 / message.fps;\n+        send_cam_trigger_interval(port, 150, interval * 1e6); // 150 是 MAVLink 消息 ID\n         console.log(`Setting camera FPS to ${message.fps}, interval: ${interval}s`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1758769545478,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n import {join} from 'path';\n import os from 'os';\n import { exec, spawn } from 'child_process';\n import { SerialPort } from 'serialport';\n-import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request } from './handle_mavlink';\n+import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval } from './handle_mavlink';\n const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');\n \n let mainWindow: BrowserWindow | null = null;\n let port: SerialPort | null = null;\n"
+                },
+                {
+                    "date": 1758769707722,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -180,9 +180,9 @@\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const interval = 1.0 / message.fps;\n-        send_cam_trigger_interval(port, 150, interval * 1e6); // 150 是 MAVLink 消息 ID\n+\n         console.log(`Setting camera FPS to ${message.fps}, interval: ${interval}s`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1758781006989,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n import {join} from 'path';\n import os from 'os';\n import { exec, spawn } from 'child_process';\n import { SerialPort } from 'serialport';\n-import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval } from './handle_mavlink';\n+import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode } from './handle_mavlink';\n const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');\n \n let mainWindow: BrowserWindow | null = null;\n let port: SerialPort | null = null;\n@@ -173,8 +173,9 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n+        send_cam_trigger_mode(port, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n         console.log('Sending pause command');\n"
+                },
+                {
+                    "date": 1758781064664,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,12 +173,13 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 0, 0, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n+        send_cam_trigger_mode(port, 0, 0, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const interval = 1.0 / message.fps;\n"
+                },
+                {
+                    "date": 1758781082214,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -182,9 +182,9 @@\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const interval = 1.0 / message.fps;\n-\n+        send_cam_trigger_mode(port, 1, interval, 0);\n         console.log(`Setting camera FPS to ${message.fps}, interval: ${interval}s`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1758855740479,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -181,11 +181,11 @@\n         send_cam_trigger_mode(port, 0, 0, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n-        const interval = 1.0 / message.fps;\n-        send_cam_trigger_mode(port, 1, interval, 0);\n-        console.log(`Setting camera FPS to ${message.fps}, interval: ${interval}s`);\n+        const frame_duration_ms = 1000.0 / message.fps;\n+        send_cam_trigger_mode(port, 1, frame_duration_ms, 0);\n+        console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}s`);\n         break;\n     }\n   });\n \n"
+                },
+                {
+                    "date": 1758857492368,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,19 +173,19 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 0, 0, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 0, 0, 0);\n+        send_cam_trigger_mode(port, 0, 1000, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n         send_cam_trigger_mode(port, 1, frame_duration_ms, 0);\n-        console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}s`);\n+        console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);\n         break;\n     }\n   });\n \n"
+                },
+                {
+                    "date": 1758857767973,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,13 +173,13 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 0, 0, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 0, 1000, 0);\n+        send_cam_trigger_mode(port, 0, 0, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n"
+                },
+                {
+                    "date": 1758858145605,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,13 +173,13 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 0, 0, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 0, 0, 0);\n+        send_cam_trigger_mode(port, 0, 1000, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n"
                 }
             ],
             "date": 1758605242207,

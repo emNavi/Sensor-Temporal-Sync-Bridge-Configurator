@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 8,
+            "activePatchIndex": 9,
             "patches": [
                 {
                     "date": 1758608213825,
@@ -40,6 +40,10 @@
                 {
                     "date": 1758698001687,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,9 +4,9 @@\n \n contextBridge.exposeInMainWorld('electronAPI', {\n     // nodejs 向 renderer 发送消息\n \n-\n+  // 端口连接\n   listPorts: () => ipcRenderer.invoke('list-ports'),\n   connectPort: (path: string) => ipcRenderer.send('connect-port', path),\n   disconnectPort: () => ipcRenderer.send('disconnect-port'),\n   onDeviceDisconnected: (callback: () => void) => ipcRenderer.on('device-disconnected', callback),\n@@ -34,9 +34,7 @@\n   // flash firmware\n   enterDfuMode: () => ipcRenderer.send('enter-dfu'),\n   selectFirmware: () => ipcRenderer.invoke(\"select-firmware\"),\n   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),\n-  onFlashStatus: (callback: (msg: string, type: string) => void) => {\n-    ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type));\n-  },\n+  onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type)) ,\n \n })\n"
+                },
+                {
+                    "date": 1758706471094,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -36,5 +36,9 @@\n   selectFirmware: () => ipcRenderer.invoke(\"select-firmware\"),\n   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),\n   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type)) ,\n \n+  // camera\n+  sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),\n+  onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),\n+\n })\n"
                 }
             ],
             "date": 1758608213825,

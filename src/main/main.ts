@@ -3,7 +3,7 @@ import {join} from 'path';
 import os from 'os';
 import { exec, spawn } from 'child_process';
 import { SerialPort } from 'serialport';
-import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request } from './handle_mavlink';
+import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode } from './handle_mavlink';
 const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');
 
 let mainWindow: BrowserWindow | null = null;
@@ -167,6 +167,26 @@ app.whenReady().then(() => {
   });
   ipcMain.on('cancel-calib', () => {
     if (port) send_sensor_calib(port, false, false, false, false);
+  });
+
+  ipcMain.on('send-camera-command', (_event, message) => {
+    if (!port) return;
+
+    switch (message.cmd) {
+      case 'trigger':
+        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式
+        console.log('Sending trigger command');
+        break;
+      case 'pause':
+        send_cam_trigger_mode(port, 0, 1000, 0);
+        console.log('Sending pause command');
+        break;
+      case 'set-fps':
+        const frame_duration_ms = 1000.0 / message.fps;
+        send_cam_trigger_mode(port, 1, frame_duration_ms, 0);
+        console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);
+        break;
+    }
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
