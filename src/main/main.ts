@@ -94,6 +94,48 @@ function disconnectDevice() {
   }
 }
 
+function checkForDFUDevice(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (process.platform === "linux") {
+      // Linux 下通过 lsusb 判断
+      exec("lsusb", (error, stdout) => {
+        if (error) return resolve(false);
+        resolve(stdout.includes("0483:df11"));
+      });
+    } else if (process.platform === "win32") {
+      // Windows 下通过 wmic 检查 USB 设备
+      exec(
+        "wmic path Win32_PnPEntity get DeviceID,Name",
+        { encoding: "utf8" },
+        (error, stdout) => {
+          if (error) return resolve(false);
+          resolve(stdout.includes("VID_0483&PID_DF11"));
+        }
+      );
+    } else {
+      // 其他平台暂不支持
+      resolve(false);
+    }
+  });
+}
+
+// 轮询检测 DFU 设备是否上线
+async function waitForDFUDevice(mainWindow: BrowserWindow) {
+  let found = false;
+  for (let i = 0; i < 10; i++) { // 最多检测 10 次，每次间隔 500ms
+    found = await checkForDFUDevice();
+    if (found) {
+      mainWindow.webContents.send("dfu-device-detected");
+      console.log("DFU 设备已连接");
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!found) {
+    mainWindow.webContents.send("dfu-device-not-found");
+  }
+}
+
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: 1300,
@@ -126,14 +168,20 @@ app.whenReady().then(() => {
   ipcMain.on('connect-port', (_event, path: string) => connectDevice(path));
   ipcMain.on('disconnect-port', () => disconnectDevice());
 
+  // 烧录固件相关
+  // 进入 DFU 模式
   ipcMain.on('enter-dfu', () => {
+    const mainWindow = BrowserWindow.getFocusedWindow();
+    if (!mainWindow) return;
+    
     if (port) {
       send_upgrade_request(port);
+      waitForDFUDevice(mainWindow);
     } else {
       console.error('Serial port not open. Cannot enter DFU mode.');
     }
   });
-
+  // 选择固件文件
   ipcMain.handle("select-firmware", async () => {
     if (!mainWindow) return null;
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -142,7 +190,7 @@ app.whenReady().then(() => {
     });
     return (!result.canceled && result.filePaths.length > 0) ? result.filePaths[0] : null;
   });
-
+  // 烧录固件
   ipcMain.on("flash-firmware", (_event, firmwarePath: string) => {
     if (!firmwarePath) {
       mainWindow?.webContents.send("flash-status", "未选择固件文件", "error");
@@ -162,6 +210,7 @@ app.whenReady().then(() => {
     });
   });
 
+  // 校准相关
   ipcMain.on('trigger-calib', (_event, message) => {
     send_sensor_calib(port, message.params.acc,message.params.gyro,message.params.mag,message.params.baro);
   });
@@ -169,6 +218,7 @@ app.whenReady().then(() => {
     if (port) send_sensor_calib(port, false, false, false, false);
   });
 
+  // 相机控制相关
   ipcMain.on('send-camera-command', (_event, message) => {
     if (!port) return;
 

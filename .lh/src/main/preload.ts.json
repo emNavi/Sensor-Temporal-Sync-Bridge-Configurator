@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 9,
+            "activePatchIndex": 11,
             "patches": [
                 {
                     "date": 1758608213825,
@@ -44,6 +44,14 @@
                 {
                     "date": 1758706471094,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -36,5 +36,9 @@\n   selectFirmware: () => ipcRenderer.invoke(\"select-firmware\"),\n   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),\n   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type)) ,\n \n+  // camera\n+  sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),\n+  onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),\n+\n })\n"
+                },
+                {
+                    "date": 1760151316522,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -35,9 +35,11 @@\n   enterDfuMode: () => ipcRenderer.send('enter-dfu'),\n   selectFirmware: () => ipcRenderer.invoke(\"select-firmware\"),\n   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),\n   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type)) ,\n-\n+  onDfuDetected: (callback) => ipcRenderer.on(\"dfu-device-detected\", callback),\n+  onDfuNotFound: (callback) => ipcRenderer.on(\"dfu-device-not-found\", callback),\n+  \n   // camera\n   sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),\n   onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),\n \n"
+                },
+                {
+                    "date": 1760151347880,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -38,8 +38,11 @@\n   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on(\"flash-status\", (_, msg, type) => callback(msg, type)) ,\n   onDfuDetected: (callback) => ipcRenderer.on(\"dfu-device-detected\", callback),\n   onDfuNotFound: (callback) => ipcRenderer.on(\"dfu-device-not-found\", callback),\n   \n+  removeDfuDetectedListener: () => ipcRenderer.removeAllListeners(\"dfu-device-detected\"),\n+  removeDfuNotFoundListener: () => ipcRenderer.removeAllListeners(\"dfu-device-not-found\"),\n+\n   // camera\n   sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),\n   onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),\n \n"
                 }
             ],
             "date": 1758608213825,

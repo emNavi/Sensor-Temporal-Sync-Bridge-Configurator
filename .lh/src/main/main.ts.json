@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 56,
+            "activePatchIndex": 60,
             "patches": [
                 {
                     "date": 1758605242207,
@@ -232,6 +232,22 @@
                 {
                     "date": 1758858145605,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -173,13 +173,13 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 0, 0, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 0, 0, 0);\n+        send_cam_trigger_mode(port, 0, 1000, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n"
+                },
+                {
+                    "date": 1760150625106,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -125,25 +125,27 @@\n   ipcMain.handle('list-ports', listPorts);\n   ipcMain.on('connect-port', (_event, path: string) => connectDevice(path));\n   ipcMain.on('disconnect-port', () => disconnectDevice());\n \n+  // 烧录固件相关\n+  // 进入 DFU 模式\n   ipcMain.on('enter-dfu', () => {\n     if (port) {\n       send_upgrade_request(port);\n     } else {\n       console.error('Serial port not open. Cannot enter DFU mode.');\n     }\n   });\n-\n+  // 选择固件文件\n   ipcMain.handle(\"select-firmware\", async () => {\n     if (!mainWindow) return null;\n     const result = await dialog.showOpenDialog(mainWindow, {\n       properties: [\"openFile\"],\n       filters: [{ name: \"Firmware\", extensions: [\"bin\", \"hex\"] }],\n     });\n     return (!result.canceled && result.filePaths.length > 0) ? result.filePaths[0] : null;\n   });\n-\n+  // 烧录固件\n   ipcMain.on(\"flash-firmware\", (_event, firmwarePath: string) => {\n     if (!firmwarePath) {\n       mainWindow?.webContents.send(\"flash-status\", \"未选择固件文件\", \"error\");\n       return;\n@@ -161,15 +163,17 @@\n       else mainWindow?.webContents.send(\"flash-status\", `烧录失败 (code=${code})`, \"error\");\n     });\n   });\n \n+  // 校准相关\n   ipcMain.on('trigger-calib', (_event, message) => {\n     send_sensor_calib(port, message.params.acc,message.params.gyro,message.params.mag,message.params.baro);\n   });\n   ipcMain.on('cancel-calib', () => {\n     if (port) send_sensor_calib(port, false, false, false, false);\n   });\n \n+  // 相机控制相关\n   ipcMain.on('send-camera-command', (_event, message) => {\n     if (!port) return;\n \n     switch (message.cmd) {\n"
+                },
+                {
+                    "date": 1760151063016,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -93,8 +93,49 @@\n     heartbeatInterval = null;\n   }\n }\n \n+function checkForDFUDevice(): Promise<boolean> {\n+  return new Promise((resolve) => {\n+    if (process.platform === \"linux\") {\n+      // Linux 下通过 lsusb 判断\n+      exec(\"lsusb\", (error, stdout) => {\n+        if (error) return resolve(false);\n+        resolve(stdout.includes(\"0483:df11\"));\n+      });\n+    } else if (process.platform === \"win32\") {\n+      // Windows 下通过 wmic 检查 USB 设备\n+      exec(\n+        \"wmic path Win32_PnPEntity get DeviceID,Name\",\n+        { encoding: \"utf8\" },\n+        (error, stdout) => {\n+          if (error) return resolve(false);\n+          resolve(stdout.includes(\"VID_0483&PID_DF11\"));\n+        }\n+      );\n+    } else {\n+      // 其他平台暂不支持\n+      resolve(false);\n+    }\n+  });\n+}\n+\n+// 轮询检测 DFU 设备是否上线\n+async function waitForDFUDevice(mainWindow: BrowserWindow) {\n+  let found = false;\n+  for (let i = 0; i < 10; i++) { // 最多检测 10 次，每次间隔 500ms\n+    found = await checkForDFUDevice();\n+    if (found) {\n+      mainWindow.webContents.send(\"dfu-device-detected\");\n+      break;\n+    }\n+    await new Promise((r) => setTimeout(r, 500));\n+  }\n+  if (!found) {\n+    mainWindow.webContents.send(\"dfu-device-not-found\");\n+  }\n+}\n+\n function createWindow () {\n   mainWindow = new BrowserWindow({\n     width: 1300,\n     height: 780,\n"
+                },
+                {
+                    "date": 1760151185672,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -169,10 +169,14 @@\n \n   // 烧录固件相关\n   // 进入 DFU 模式\n   ipcMain.on('enter-dfu', () => {\n+    const mainWindow = BrowserWindow.getFocusedWindow();\n+    if (!mainWindow) return;\n+    \n     if (port) {\n       send_upgrade_request(port);\n+      waitForDFUDevice(mainWindow);\n     } else {\n       console.error('Serial port not open. Cannot enter DFU mode.');\n     }\n   });\n"
+                },
+                {
+                    "date": 1760151220811,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -125,8 +125,9 @@\n   for (let i = 0; i < 10; i++) { // 最多检测 10 次，每次间隔 500ms\n     found = await checkForDFUDevice();\n     if (found) {\n       mainWindow.webContents.send(\"dfu-device-detected\");\n+      console.log(\"DFU 设备已连接\");\n       break;\n     }\n     await new Promise((r) => setTimeout(r, 500));\n   }\n"
                 }
             ],
             "date": 1758605242207,

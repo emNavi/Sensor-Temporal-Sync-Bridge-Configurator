@@ -36,6 +36,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFirmware: () => ipcRenderer.invoke("select-firmware"),
   flashFirmware: (path: string) => ipcRenderer.send('flash-firmware', path),
   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on("flash-status", (_, msg, type) => callback(msg, type)) ,
+  onDfuDetected: (callback) => ipcRenderer.on("dfu-device-detected", callback),
+  onDfuNotFound: (callback) => ipcRenderer.on("dfu-device-not-found", callback),
+  
+  removeDfuDetectedListener: () => ipcRenderer.removeAllListeners("dfu-device-detected"),
+  removeDfuNotFoundListener: () => ipcRenderer.removeAllListeners("dfu-device-not-found"),
 
   // camera
   sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),

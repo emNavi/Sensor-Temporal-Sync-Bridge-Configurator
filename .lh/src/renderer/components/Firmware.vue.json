@@ -1,0 +1,22 @@
+{
+    "sourceFile": "src/renderer/components/Firmware.vue",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1760151438909,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1760152138054,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -70,9 +70,9 @@\n         isWorking.value = type === \"info\"; // 烧录中时禁用按钮\n     });\n \n     window.electronAPI.onDfuDetected(() => {\n-        ElMessage.success(\"检测到 STM32 已进入 DFU 模式！\");\n+        ElMessage.success(\"已进入 DFU 模式！\");\n         statusMsg.value = \"设备已进入 DFU 模式\";\n         statusType.value = \"success\";\n     });\n \n@@ -82,8 +82,13 @@\n         statusType.value = \"warning\";\n     });\n });\n \n+onBeforeUnmount(() => {\n+    window.electronAPI.removeDfuDetectedListener();\n+    window.electronAPI.removeDfuNotFoundListener();\n+});\n+\n </script>\n \n <style scoped>\n .page_main_layout {\n"
+                }
+            ],
+            "date": 1760151438909,
+            "name": "Commit-0",
+            "content": "<template>\n    <div class=\"page_main_layout\">\n        <p class=\"page_title\">固件烧录</p>\n        <el-divider />\n\n        <el-card class=\"fw-card\">\n            <div class=\"row\">\n                <el-button type=\"warning\" @click=\"enterDfu\" :disabled=\"isWorking\">进入 DFU 模式</el-button>\n            </div>\n            <div class=\"row\" style=\"margin-top: 12px;\">\n                <el-input\n                    v-model=\"firmwarePath\"\n                    placeholder=\"请选择固件文件(.bin / .hex )\"\n                    readonly\n                    class=\"fw-input\"\n                />\n                <el-button type=\"primary\" @click=\"selectFirmware\" :disabled=\"isWorking\">选择固件</el-button>\n            </div>\n\n            <div class=\"row\" style=\"margin-top: 12px;\">\n                <el-button type=\"success\" @click=\"flashFirmware\" :disabled=\"!firmwarePath || isWorking\">\n                {{ isWorking ? '正在发送指令…' : '开始烧录' }}\n                </el-button>\n            </div>\n\n            <el-alert\n                v-if=\"statusMsg\"\n                :title=\"statusMsg\"\n                :type=\"statusType\"\n                :closable=\"false\"\n                show-icon\n                style=\"margin-top: 14px;\"\n            />\n        </el-card>\n    </div>\n</template>\n\n<script setup lang=\"ts\">\nimport { ref, onMounted, onBeforeUnmount } from 'vue';\nimport { ElMessage } from 'element-plus';\n\nconst firmwarePath = ref<string | null>(null);\n\nconst isWorking = ref(false);\nconst statusMsg = ref('');\nconst statusType = ref<'info' | 'success' | 'warning' | 'error'>('info');\nconst progress = ref(-1);\nconst flashDone = ref(false);\n\nconst enterDfu = () => {\n    window.electronAPI.enterDfuMode();\n};\n\nconst selectFirmware = async () => {\n    firmwarePath.value = await window.electronAPI.selectFirmware();\n};\n\nconst flashFirmware = () => {\n    if (firmwarePath.value) {\n        progress.value = 0;\n        flashDone.value = false;\n        window.electronAPI.flashFirmware(firmwarePath.value);\n    }\n};\n\nonMounted(() => {\n    window.electronAPI.onFlashStatus((msg, type) => {\n        statusMsg.value = msg;\n        statusType.value = type as any;\n        isWorking.value = type === \"info\"; // 烧录中时禁用按钮\n    });\n\n    window.electronAPI.onDfuDetected(() => {\n        ElMessage.success(\"检测到 STM32 已进入 DFU 模式！\");\n        statusMsg.value = \"设备已进入 DFU 模式\";\n        statusType.value = \"success\";\n    });\n\n    window.electronAPI.onDfuNotFound(() => {\n        ElMessage.warning(\"未检测到 DFU 设备，请检查连接或尝试重新插拔\");\n        statusMsg.value = \"未检测到 DFU 设备\";\n        statusType.value = \"warning\";\n    });\n});\n\n</script>\n\n<style scoped>\n.page_main_layout {\n    display: flex;\n    flex-direction: column;\n    height: 100%;       /* 占满父容器高度 */\n    box-sizing: border-box;\n    padding: 12px;\n}\n.fw-card {\n    max-width: 720px;\n    margin-top: 8px;\n    padding: 12px;\n}\n.row {\n    display: flex;\n    gap: 10px;\n    align-items: center;\n}\n.fw-input :deep(.el-input__inner) {\n    font-family: monospace;\n}\n</style>\n"
+        }
+    ]
+}

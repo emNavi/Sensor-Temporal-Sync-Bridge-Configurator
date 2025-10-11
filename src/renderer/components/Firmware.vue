@@ -65,10 +65,27 @@ const flashFirmware = () => {
 
 onMounted(() => {
     window.electronAPI.onFlashStatus((msg, type) => {
-    statusMsg.value = msg;
-    statusType.value = type as any;
-    isWorking.value = type === "info"; // 烧录中时禁用按钮
+        statusMsg.value = msg;
+        statusType.value = type as any;
+        isWorking.value = type === "info"; // 烧录中时禁用按钮
     });
+
+    window.electronAPI.onDfuDetected(() => {
+        ElMessage.success("已进入 DFU 模式！");
+        statusMsg.value = "设备已进入 DFU 模式";
+        statusType.value = "success";
+    });
+
+    window.electronAPI.onDfuNotFound(() => {
+        ElMessage.warning("未检测到 DFU 设备，请检查连接或尝试重新插拔");
+        statusMsg.value = "未检测到 DFU 设备";
+        statusType.value = "warning";
+    });
+});
+
+onBeforeUnmount(() => {
+    window.electronAPI.removeDfuDetectedListener();
+    window.electronAPI.removeDfuNotFoundListener();
 });
 
 </script>
