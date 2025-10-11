@@ -38,5 +38,9 @@
 	"!build",
 	"!dist",
 	"!scripts"
+    ],
+    "asarUnpack": [
+        "**/node_modules/serialport/**",
+        "**/node_modules/@serialport/**"
     ]
 }

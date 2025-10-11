@@ -10,6 +10,11 @@ let mainWindow: BrowserWindow | null = null;
 let port: SerialPort | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
 
+enum trigger_mode {
+  CONTINUOUS = 0,
+  SINGLE = 1,
+  STOP = 2
+}
 async function listPorts(): Promise<{ path: string; friendlyName?: string }[]> {
   const platform = os.platform();
   console.log(`Listing ports on platform: ${platform}`);
@@ -224,16 +229,16 @@ app.whenReady().then(() => {
 
     switch (message.cmd) {
       case 'trigger':
-        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式
+        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, trigger_mode.SINGLE); // 单次触发模式
         console.log('Sending trigger command');
         break;
       case 'pause':
-        send_cam_trigger_mode(port, 0, 1000, 0);
+        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, trigger_mode.STOP);
         console.log('Sending pause command');
         break;
       case 'set-fps':
         const frame_duration_ms = 1000.0 / message.fps;
-        send_cam_trigger_mode(port, 1, frame_duration_ms, 0);
+        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, trigger_mode.CONTINUOUS);
         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);
         break;
     }

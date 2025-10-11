@@ -1,0 +1,26 @@
+{
+    "sourceFile": "package.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1760159095010,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1760159230108,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,9 +8,9 @@\n     \"build\": \"node scripts/build.js && electron-builder\",\n     \"build:win\": \"node scripts/build.js && electron-builder --win\",\n     \"build:mac\": \"node scripts/build.js && electron-builder --mac\",\n     \"build:linux\": \"node scripts/build.js && electron-builder --linux\",\n-    \"build:linux-arm64\": \"node scripts/build.js && electron-builder --linux arm64\"\n+    \"build:linux-arm64\": \"node scripts/build.js && electron-builder --linux --arm64\"\n   },\n   \"repository\": \"https://github.com/deluze/electron-vue-template\",\n   \"author\": {\n     \"name\": \"Deluze\",\n"
+                },
+                {
+                    "date": 1760160095849,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,8 +1,8 @@\n {\n-  \"name\": \"emnavi-discover\",\n+  \"name\": \"sensor-bridge\",\n   \"version\": \"0.1.0\",\n-  \"description\": \"emNavi Discover (electron version)\",\n+  \"description\": \"sensor  bridge\",\n   \"main\": \"main/main.js\",\n   \"scripts\": {\n     \"dev\": \"node scripts/dev-server.js\",\n     \"build\": \"node scripts/build.js && electron-builder\",\n"
+                }
+            ],
+            "date": 1760159095010,
+            "name": "Commit-0",
+            "content": "{\n  \"name\": \"emnavi-discover\",\n  \"version\": \"0.1.0\",\n  \"description\": \"emNavi Discover (electron version)\",\n  \"main\": \"main/main.js\",\n  \"scripts\": {\n    \"dev\": \"node scripts/dev-server.js\",\n    \"build\": \"node scripts/build.js && electron-builder\",\n    \"build:win\": \"node scripts/build.js && electron-builder --win\",\n    \"build:mac\": \"node scripts/build.js && electron-builder --mac\",\n    \"build:linux\": \"node scripts/build.js && electron-builder --linux\",\n    \"build:linux-arm64\": \"node scripts/build.js && electron-builder --linux arm64\"\n  },\n  \"repository\": \"https://github.com/deluze/electron-vue-template\",\n  \"author\": {\n    \"name\": \"Deluze\",\n    \"url\": \"https://github.com/Deluze\"\n  },\n  \"devDependencies\": {\n    \"@vitejs/plugin-vue\": \"^4.4.1\",\n    \"chalk\": \"^4.1.2\",\n    \"chokidar\": \"^3.5.3\",\n    \"electron\": \"^32.1.2\",\n    \"electron-builder\": \"^25.1.6\",\n    \"typescript\": \"^5.2.2\",\n    \"vite\": \"^4.5.0\"\n  },\n  \"dependencies\": {\n    \"@element-plus/icons-vue\": \"^2.3.2\",\n    \"@serialport/bindings-cpp\": \"^13.0.1\",\n    \"@serialport/stream\": \"^13.0.0\",\n    \"async-mutex\": \"^0.5.0\",\n    \"axios\": \"^1.7.9\",\n    \"dgram\": \"^1.0.1\",\n    \"element-plus\": \"^2.9.5\",\n    \"ip\": \"^2.0.1\",\n    \"is-in-subnet\": \"^4.0.1\",\n    \"js-yaml\": \"^4.1.0\",\n    \"mavlink\": \"^1.0.1\",\n    \"node-mavlink\": \"^2.0.5\",\n    \"serialport\": \"^10.4.0\",\n    \"vue\": \"^3.3.8\",\n    \"vue-router\": \"^4.5.0\"\n  },\n  \"packageManager\": \"pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af\"\n}\n"
+        }
+    ]
+}

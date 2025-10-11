@@ -1,0 +1,18 @@
+{
+    "sourceFile": "electron-builder.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1760160849854,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1760160849854,
+            "name": "Commit-0",
+            "content": "{\n    \"appId\": \"com.electron.app\",\n    \"directories\": {\n        \"output\": \"dist\"\n    },\n\n    \"nsis\": {\n        \"oneClick\": false,\n        \"perMachine\": false,\n        \"allowToChangeInstallationDirectory\": true,\n        \"shortcutName\": \"sensor bridge configurator\"\n    },\n    \"win\": {\n        \"target\": \"nsis\"\n    },\n    \"linux\":  {\n        \"target\": \"deb\",\n        \"description\": \"sensor bridge configurator(electron version)\",\n        \"maintainer\": \"emnavi <common@emnavi.tech>\" \n\n    },\n    \"files\": [\n        {\n            \"from\": \"build/main\",\n            \"to\": \"main\",\n            \"filter\": [\"**/*\"]\n        },\n        {\n            \"from\": \"build/renderer\",\n            \"to\": \"renderer\",\n            \"filter\": [\"**/*\"]\n        },\n        {\n            \"from\": \"src/main/static\",\n            \"to\": \"static\",\n            \"filter\": [\"**/*\"]\n        },\n\t\"!build\",\n\t\"!dist\",\n\t\"!scripts\"\n    ],\n    \"asarUnpack\": [\n        \"**/node_modules/serialport/**\",\n        \"**/node_modules/@serialport/**\"\n    ]\n}\n"
+        }
+    ]
+}

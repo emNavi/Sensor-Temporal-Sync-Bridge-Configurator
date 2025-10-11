@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 60,
+            "activePatchIndex": 66,
             "patches": [
                 {
                     "date": 1758605242207,
@@ -248,6 +248,30 @@
                 {
                     "date": 1760151220811,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -125,8 +125,9 @@\n   for (let i = 0; i < 10; i++) { // 最多检测 10 次，每次间隔 500ms\n     found = await checkForDFUDevice();\n     if (found) {\n       mainWindow.webContents.send(\"dfu-device-detected\");\n+      console.log(\"DFU 设备已连接\");\n       break;\n     }\n     await new Promise((r) => setTimeout(r, 500));\n   }\n"
+                },
+                {
+                    "date": 1760171568047,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -232,9 +232,9 @@\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n-        send_cam_trigger_mode(port, 1, frame_duration_ms, 0);\n+        send_cam_trigger_mode(port, 0, frame_duration_ms, 0);\n         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1760171600395,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -223,13 +223,13 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 0, 1000, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, 1, 1000, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 0, 1000, 0);\n+        send_cam_trigger_mode(port, 1, 1000, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n"
+                },
+                {
+                    "date": 1760172110004,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,8 +9,13 @@\n let mainWindow: BrowserWindow | null = null;\n let port: SerialPort | null = null;\n let heartbeatInterval: NodeJS.Timeout | null = null;\n \n+enum trigger_mode {\n+  INTERVAL = 0,\n+  TRIGGER = 1,\n+  STOP = 2\n+}\n async function listPorts(): Promise<{ path: string; friendlyName?: string }[]> {\n   const platform = os.platform();\n   console.log(`Listing ports on platform: ${platform}`);\n   if (platform === 'win32') {\n"
+                },
+                {
+                    "date": 1760172152852,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,10 +10,10 @@\n let port: SerialPort | null = null;\n let heartbeatInterval: NodeJS.Timeout | null = null;\n \n enum trigger_mode {\n-  INTERVAL = 0,\n-  TRIGGER = 1,\n+  CONTINUOUS = 0,\n+  SINGLE = 1,\n   STOP = 2\n }\n async function listPorts(): Promise<{ path: string; friendlyName?: string }[]> {\n   const platform = os.platform();\n"
+                },
+                {
+                    "date": 1760172207475,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -228,18 +228,18 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, 1, 1000, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, 1); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, 1, 1000, 0);\n+        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, 0);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n-        send_cam_trigger_mode(port, 0, frame_duration_ms, 0);\n+        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, 0);\n         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1760172256987,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -228,18 +228,18 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, trigger_mode.SINGLE); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, 0);\n+        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, trigger_mode.STOP);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n-        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, 0);\n+        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, trigger_mode.CONTINUOUS);\n         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);\n         break;\n     }\n   });\n"
                 }
             ],
             "date": 1758605242207,

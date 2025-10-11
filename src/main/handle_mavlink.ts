@@ -49,6 +49,7 @@ export function handle_mavlink_msg(packet,mainWindow,port){
     }
     const clazz = REGISTRY[packet.header.msgid]
     if (clazz) {
+      console.log(`Received message: ${clazz.MSG_NAME}`);
       const data = packet.protocol.data(packet.payload, clazz)
       if(clazz.MSG_NAME === "HEARTBEAT"){
         // const timestamp = new Date().toISOString();
