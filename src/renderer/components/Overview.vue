@@ -72,14 +72,14 @@ const sensors = reactive<Sensor[]>([
         id: 2, 
         name: "IMU", 
         metadata: {
-            orientation: "北偏东30°", 
-            acceleration: "9.8 m/s²", 
-            angularVelocity: "0.02 rad/s"
+            Roll: "0°", 
+            Pitch: "0°", 
+            Yaw: "0°"
         },
         metadescribe: {
-            orientation: "方向",
-            acceleration: "加速度",
-            angularVelocity: "角速度",
+            Roll: "Roll",
+            Pitch: "Pitch",
+            Yaw: "Yaw",
         }
     },
     { 
@@ -94,20 +94,20 @@ const sensors = reactive<Sensor[]>([
             altitude: "海拔",
         }
     },
-    // {
-    //     id: 4, 
-    //     name: "磁力计", 
-    //     metadata: {
-    //         magneticFieldX: "30 µT", 
-    //         magneticFieldY: "-20 µT", 
-    //         magneticFieldZ: "50 µT"
-    //     },
-    //     metadescribe: {
-    //         magneticFieldX: "X 分量",
-    //         magneticFieldY: "Y 分量",
-    //         magneticFieldZ: "Z 分量",
-    //     }
-    // },
+    {
+        id: 4, 
+        name: "磁力计", 
+        metadata: {
+            magneticFieldX: " µT", 
+            magneticFieldY: " µT", 
+            magneticFieldZ: " µT"
+        },
+        metadescribe: {
+            magneticFieldX: "X 分量",
+            magneticFieldY: "Y 分量",
+            magneticFieldZ: "Z 分量",
+        }
+    },
     // { 
     //     id: 5, 
     //     name: "GPS", 
@@ -150,8 +150,11 @@ window.electronAPI.onHighresImu((data: any) => {
     //console.log("onHighresImu");
     const imuSensor = sensors.find(sensor => sensor.name === "IMU");
     if (imuSensor) {
-        imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
-        imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
+        // imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
+        // imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
+        imuSensor.metadata.Roll = `${data.gyro.x.toFixed(1)}°`;
+        imuSensor.metadata.Pitch = `${data.gyro.y.toFixed(1)}°`;
+        imuSensor.metadata.Yaw = `${data.gyro.z.toFixed(1)}°`;
     }
     const baroSensor = sensors.find(sensor => sensor.name === "气压计");
     if (baroSensor) {

@@ -7,7 +7,7 @@
                         <el-form :model="boardSettings" label-position="left" label-width="140px">
                             <el-divider content-position="left">ID 设置</el-divider>
 
-                            <el-form-item label="同步板 ID:">
+                            <!-- <el-form-item label="同步板 ID:">
                             <el-input-number
                                 v-model="boardSettings.syncBoardId"
                                 :min="1"
@@ -17,7 +17,7 @@
                             />
 
                             <el-button type="primary" @click="saveBoardSettings">设置</el-button>
-                            </el-form-item>
+                            </el-form-item> -->
                         </el-form>
                     </el-tab-pane>
 
@@ -48,7 +48,7 @@
                         </el-form-item>
 
                         <el-divider content-position="left">其他设置</el-divider>
-                        <el-form-item>
+                        <!-- <el-form-item>
                             <el-button type="primary" @click="saveSettings">保存设置</el-button>
                             <el-button @click="exportSettings">导出设置</el-button>
                             <el-button @click="importSettings">载入设置</el-button>
@@ -59,7 +59,7 @@
                                 accept=".yaml,.yml"
                                 @change="handleFileUpload"
                             />
-                        </el-form-item>
+                        </el-form-item> -->
                     </el-form>
 
                     <el-alert
