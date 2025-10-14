@@ -16,7 +16,7 @@
       style="display: flex; align-items: center; justify-content: center; background-color: #f5f5f5; gap: 10px;"
     >
       <!-- 未连接 -->
-      <div v-if="!isConnected" style="display: flex; align-items: center; gap: 10px;">
+      <div v-if="!deviceStore.isConnected" style="display: flex; align-items: center; gap: 10px;">
         <span style="color: red;">未连接</span>
         <el-select
           v-model="selectedPort"
@@ -41,8 +41,8 @@
       <div v-else style="display: flex; align-items: center; gap: 10px;">
         <!-- 连接后显示端口和设备 ID -->
         <span style="color: green;">
-          已连接设备：{{ connectedPort }} 
-          <template v-if="deviceId"> (ID: {{ deviceId }})</template>
+          已连接设备：{{ deviceStore.connectedPort }} 
+          <template v-if="deviceStore.deviceId"> (ID: {{ deviceStore.deviceId }})</template>
         </span>
         <el-button type="danger" size="small" @click="disconnectDevice">断开</el-button>
       </div>
@@ -57,7 +57,9 @@
 import Menu from './components/Menu.vue';
 import { version } from '../../package.json';
 import { ref, onMounted } from 'vue';
+import { useDeviceStore } from './store/device';
 
+const deviceStore = useDeviceStore();
 const isConnected = ref(false);          // 心跳更新
 const ports = ref<{ path: string; friendlyName?: string }[]>([]);
 const selectedPort = ref('');
@@ -96,26 +98,16 @@ onMounted(async () => {
 
   // 监听心跳状态，更新连接状态
   window.electronAPI.heartBeatStatusMessage((value: boolean) => {
-    isConnected.value = value;
-
-    if (value && selectedPort.value) {
-      connectedPort.value = selectedPort.value; 
-    } else if (!value) {
-
-    }
+    deviceStore.setConnection(value, selectedPort.value || '', deviceStore.deviceId);
   });
-
   // 监听 heartbeat，获取设备 ID
   window.electronAPI.onHeartbeat((data: { id: number }) => {
-    deviceId.value = data.id;
+    deviceStore.deviceId = data.id;
   });
-
-  // 监听断开事件（主动断开/拔掉）
+  // 断开事件
   window.electronAPI.onDeviceDisconnected(() => {
-    connectedPort.value = '';
+    deviceStore.disconnect();
     selectedPort.value = '';
-    deviceId.value = null;
-    isConnected.value = false;
   });
 });
 </script>

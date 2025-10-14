@@ -1,0 +1,22 @@
+{
+    "sourceFile": "src/renderer/store/device.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1760416380588,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1760416822806,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,6 +11,12 @@\n         connectedPort.value = port;\n         deviceId.value = id;\n     };\n \n-    return { isConnected, connectedPort, deviceId, setConnection };\n+    const disconnect = () => {\n+        isConnected.value = false;\n+        connectedPort.value = '';\n+        deviceId.value = null;\n+    };\n+\n+    return { isConnected, connectedPort, deviceId, setConnection, disconnect };\n });\n"
+                }
+            ],
+            "date": 1760416380588,
+            "name": "Commit-0",
+            "content": "import { defineStore } from 'pinia';\nimport { ref } from 'vue';\n\nexport const useDeviceStore = defineStore('device', () => {\n    const isConnected = ref(false);\n    const connectedPort = ref('');\n    const deviceId = ref<number | null>(null);\n\n    const setConnection = (value: boolean, port = '', id: number | null = null) => {\n        isConnected.value = value;\n        connectedPort.value = port;\n        deviceId.value = id;\n    };\n\n    return { isConnected, connectedPort, deviceId, setConnection };\n});\n"
+        }
+    ]
+}

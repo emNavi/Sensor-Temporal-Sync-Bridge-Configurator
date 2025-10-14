@@ -38,6 +38,7 @@
     "js-yaml": "^4.1.0",
     "mavlink": "^1.0.1",
     "node-mavlink": "^2.0.5",
+    "pinia": "^3.0.3",
     "serialport": "^10.4.0",
     "vue": "^3.3.8",
     "vue-router": "^4.5.0"
