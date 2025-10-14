@@ -38,7 +38,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useDeviceStore } from '../store/device';
 
+const deviceStore = useDeviceStore();
 const firmwarePath = ref<string | null>(null);
 
 const isWorking = ref(false);
@@ -48,6 +50,10 @@ const progress = ref(-1);
 const flashDone = ref(false);
 
 const enterDfu = () => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     window.electronAPI.enterDfuMode();
 };
 

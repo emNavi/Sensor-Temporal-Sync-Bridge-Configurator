@@ -27,7 +27,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ElMessage } from 'element-plus';
 import { isCalibrating } from '../store/calib';
+import { useDeviceStore } from '../store/device';
 
 import accel_back_pic from '../assets/calibration/accel_back.png';
 import accel_down_pic from '../assets/calibration/accel_down.png';
@@ -45,9 +47,14 @@ const steps = ref([
     { dir: 'POS_Z', image: accel_down_pic, status: 'pending' },
     { dir: 'NEG_Z', image: accel_up_pic, status: 'pending' }
 ]);
+const deviceStore = useDeviceStore();
 
 // 启动校准
 const startAccCalibration = (): void => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     isCalibrating.value = true;
     steps.value.forEach(s => (s.status = 'pending'));
     const calibrationCommand = {

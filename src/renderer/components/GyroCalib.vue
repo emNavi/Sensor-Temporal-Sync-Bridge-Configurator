@@ -27,55 +27,63 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useDeviceStore } from '../store/device'
+
 import accel_down_pic from '../assets/calibration/accel_down.png'
 
+const deviceStore = useDeviceStore()
 const isCalibrating = ref(false)
 const steps = ref([
-  { dir: '水平放置', image: accel_down_pic, status: 'pending' as 'pending' | 'active' | 'done' },
+    { dir: '水平放置', image: accel_down_pic, status: 'pending' as 'pending' | 'active' | 'done' },
 ])
 
 /** 启动校准 */
 const startGyroCalibration = () => {
-  isCalibrating.value = true
-  steps.value.forEach(s => (s.status = 'pending'))
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
+    isCalibrating.value = true
+    steps.value.forEach(s => (s.status = 'pending'))
 
-  const calibrationCommand = {
-    params: { gyro: true, acc: false, mag: false, baro: false },
-  }
-  console.log('Sending calibration command:', calibrationCommand)
-  window.electronAPI.triggerCalib(calibrationCommand)
+    const calibrationCommand = {
+        params: { gyro: true, acc: false, mag: false, baro: false },
+    }
+    console.log('Sending calibration command:', calibrationCommand)
+    window.electronAPI.triggerCalib(calibrationCommand)
 }
 
 onMounted(() => {
-  window.electronAPI.onGyroCalibUpdate(handleUpdate)
+    window.electronAPI.onGyroCalibUpdate(handleUpdate)
 })
 
 /** 提取更新逻辑，避免重复注册 */
 const handleUpdate = (update: string) => {
-  console.log('✅ Received calibration update:', update)
+    console.log('✅ Received calibration update:', update)
 
-  if (update.startsWith('GYRO_CAL:START')) {
-    steps.value[0].status = 'active'
-  }
+    if (update.startsWith('GYRO_CAL:START')) {
+        steps.value[0].status = 'active'
+    }
 
-  if (update.startsWith('GYRO_CAL:DONE')) {
-    steps.value[0].status = 'done'
-  }
+    if (update.startsWith('GYRO_CAL:DONE')) {
+        steps.value[0].status = 'done'
+    }
 
-  if (update.includes('SUCCESS')) {
-    isCalibrating.value = false
-    alert('✅ 陀螺仪校准成功！')
-  }
+    if (update.includes('SUCCESS')) {
+        isCalibrating.value = false
+        alert('✅ 陀螺仪校准成功！')
+    }
 
-  if (update.includes('FAIL')) {
-    isCalibrating.value = false
-    steps.value[0].status = 'pending'
-    alert('❌ 陀螺仪校准失败，请重试！')
-  }
+    if (update.includes('FAIL')) {
+        isCalibrating.value = false
+        steps.value[0].status = 'pending'
+        alert('❌ 陀螺仪校准失败，请重试！')
+    }
 }
 onBeforeUnmount(() => {
   // 确保移除监听，避免重复触发
-  window.electronAPI.removeGyroCalibUpdateListener?.()
+    window.electronAPI.removeGyroCalibUpdateListener?.()
 })
 
 </script>

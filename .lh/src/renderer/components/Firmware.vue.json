@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1760151438909,
@@ -12,6 +12,14 @@
                 {
                     "date": 1760152138054,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -70,9 +70,9 @@\n         isWorking.value = type === \"info\"; // 烧录中时禁用按钮\n     });\n \n     window.electronAPI.onDfuDetected(() => {\n-        ElMessage.success(\"检测到 STM32 已进入 DFU 模式！\");\n+        ElMessage.success(\"已进入 DFU 模式！\");\n         statusMsg.value = \"设备已进入 DFU 模式\";\n         statusType.value = \"success\";\n     });\n \n@@ -82,8 +82,13 @@\n         statusType.value = \"warning\";\n     });\n });\n \n+onBeforeUnmount(() => {\n+    window.electronAPI.removeDfuDetectedListener();\n+    window.electronAPI.removeDfuNotFoundListener();\n+});\n+\n </script>\n \n <style scoped>\n .page_main_layout {\n"
+                },
+                {
+                    "date": 1760423620238,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,9 +37,11 @@\n \n <script setup lang=\"ts\">\n import { ref, onMounted, onBeforeUnmount } from 'vue';\n import { ElMessage } from 'element-plus';\n+import { useDeviceStore } from '../store/device';\n \n+const deviceStore = useDeviceStore();\n const firmwarePath = ref<string | null>(null);\n \n const isWorking = ref(false);\n const statusMsg = ref('');\n"
+                },
+                {
+                    "date": 1760423626684,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -49,8 +49,12 @@\n const progress = ref(-1);\n const flashDone = ref(false);\n \n const enterDfu = () => {\n+    if( !deviceStore.isConnected) {\n+        ElMessage.error('请先连接设备');\n+        return;\n+    }\n     window.electronAPI.enterDfuMode();\n };\n \n const selectFirmware = async () => {\n"
                 }
             ],
             "date": 1760151438909,

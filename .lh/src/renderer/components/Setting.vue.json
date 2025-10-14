@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 31,
+            "activePatchIndex": 35,
             "patches": [
                 {
                     "date": 1758593615138,
@@ -132,6 +132,22 @@
                 {
                     "date": 1760409672195,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,9 +24,9 @@\n                             <el-form-item label=\"时间源:\">\n                                 <el-radio-group v-model=\"boardSettings.syncMode\">\n                                     <el-radio label=\"internal\">同步板Boot时间</el-radio>\n                                     <el-radio label=\"external\">上位机系统时间</el-radio>\n-                                    <el-radio label=\"gps\">GPS时间</el-radio>\n+                                    <el-radio label=\"gps\" :disabled=\"true\">GPS时间</el-radio>\n                                 </el-radio-group>\n \n                                 <el-button type=\"primary\" @click=\"setTimeSyncMode\" style=\"margin-left: 12px;\">设置</el-button>\n                             </el-form-item>\n"
+                },
+                {
+                    "date": 1760417503741,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -216,8 +216,9 @@\n \n     target.value = '';\n };\n // 保存板载配置\n+// TODO: stm32 端保存\n const saveBoardSettings = () => {\n     if (boardSettings.syncBoardId < 1 || boardSettings.syncBoardId > 255) {\n         ElMessage.error('同步板 ID 必须在 1 - 255 之间');\n         return;\n"
+                },
+                {
+                    "date": 1760423081014,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -88,10 +88,12 @@\n \n <script setup lang=\"ts\">\n import { ref, reactive, onMounted } from 'vue';\n import { ElMessage } from 'element-plus';\n+import { useDeviceStore } from '../store/device'; \n import yaml from 'js-yaml'; // npm install js-yaml @types/js-yaml\n \n+const deviceStore = useDeviceStore();\n // 相机配置\n interface CameraSettings {\n     camTrigFps: number;\n }\n"
+                },
+                {
+                    "date": 1760423109131,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -230,8 +230,12 @@\n     ElMessage.success(`同步板 ID 已设置为 ${boardSettings.syncBoardId}`);\n };\n \n const setTimeSyncMode = () => {\n+    if( !deviceStore.isConnected) {\n+        ElMessage.error('请先连接设备');\n+        return;\n+    }\n     window.electronAPI.setTimeSyncMode(boardSettings.syncMode);\n     ElMessage.success(`时间源已设置为 ${boardSettings.syncMode}`);\n };\n </script>\n"
+                },
+                {
+                    "date": 1760423237307,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -104,22 +104,34 @@\n }\n \n // 相机同步：单次触发\n const triggerSync = () => {\n+    if( !deviceStore.isConnected) {\n+        ElMessage.error('请先连接设备');\n+        return;\n+    }\n     window.electronAPI.sendCameraCommand({\n         cmd: 'trigger'\n     });\n };\n \n // 相机同步：暂停\n const pauseSync = () => {\n+    if( !deviceStore.isConnected) {\n+        ElMessage.error('请先连接设备');\n+        return;\n+    }\n     window.electronAPI.sendCameraCommand({\n         cmd: 'pause'\n     });\n };\n \n // 相机帧率设置\n const applyFps = () => {\n+    if( !deviceStore.isConnected) {\n+        ElMessage.error('请先连接设备');\n+        return;\n+    }\n     window.electronAPI.sendCameraCommand({\n         cmd: 'set-fps',\n         fps: settings.camTrigFps\n     });\n"
                 }
             ],
             "date": 1758593615138,

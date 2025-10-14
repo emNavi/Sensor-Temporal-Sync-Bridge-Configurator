@@ -89,8 +89,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useDeviceStore } from '../store/device'; 
 import yaml from 'js-yaml'; // npm install js-yaml @types/js-yaml
 
+const deviceStore = useDeviceStore();
 // 相机配置
 interface CameraSettings {
     camTrigFps: number;
@@ -103,6 +105,10 @@ interface BoardSettings {
 
 // 相机同步：单次触发
 const triggerSync = () => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     window.electronAPI.sendCameraCommand({
         cmd: 'trigger'
     });
@@ -110,6 +116,10 @@ const triggerSync = () => {
 
 // 相机同步：暂停
 const pauseSync = () => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     window.electronAPI.sendCameraCommand({
         cmd: 'pause'
     });
@@ -117,6 +127,10 @@ const pauseSync = () => {
 
 // 相机帧率设置
 const applyFps = () => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     window.electronAPI.sendCameraCommand({
         cmd: 'set-fps',
         fps: settings.camTrigFps
@@ -217,6 +231,7 @@ const handleFileUpload = (event: Event) => {
     target.value = '';
 };
 // 保存板载配置
+// TODO: stm32 端保存
 const saveBoardSettings = () => {
     if (boardSettings.syncBoardId < 1 || boardSettings.syncBoardId > 255) {
         ElMessage.error('同步板 ID 必须在 1 - 255 之间');
@@ -228,6 +243,10 @@ const saveBoardSettings = () => {
 };
 
 const setTimeSyncMode = () => {
+    if( !deviceStore.isConnected) {
+        ElMessage.error('请先连接设备');
+        return;
+    }
     window.electronAPI.setTimeSyncMode(boardSettings.syncMode);
     ElMessage.success(`时间源已设置为 ${boardSettings.syncMode}`);
 };
