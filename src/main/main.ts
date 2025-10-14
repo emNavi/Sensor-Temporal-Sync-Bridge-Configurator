@@ -3,7 +3,8 @@ import {join} from 'path';
 import os from 'os';
 import { exec, spawn } from 'child_process';
 import { SerialPort } from 'serialport';
-import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode } from './handle_mavlink';
+import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode, send_time_sync_mode } from './handle_mavlink';
+import { send } from 'node-mavlink';
 const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');
 
 let mainWindow: BrowserWindow | null = null;
@@ -210,7 +211,7 @@ app.whenReady().then(() => {
       mainWindow?.webContents.send("flash-status", data.toString(), "error");
     });
     dfu.on("close", (code) => {
-      if (code === 0) mainWindow?.webContents.send("flash-status", "烧录完成 ✅", "success");
+      if (code === 0) mainWindow?.webContents.send("flash-status", "烧录完成", "success");
       else mainWindow?.webContents.send("flash-status", `烧录失败 (code=${code})`, "error");
     });
   });
@@ -240,6 +241,28 @@ app.whenReady().then(() => {
         const frame_duration_ms = 1000.0 / message.fps;
         send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, trigger_mode.CONTINUOUS);
         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);
+        break;
+    }
+  });
+
+  ipcMain.on('set-time-sync-mode', (_event, mode: string) => {
+    if (!port) return;
+
+    switch (mode) {
+      case 'internal':
+        send_time_sync_mode(port, 0);
+        console.log('Set time sync mode to internal');
+        break;
+      case 'external':
+        send_time_sync_mode(port, 1);
+        console.log('Set time sync mode to external');
+        break;
+      case 'gps':
+        send_time_sync_mode(port, 2);
+        console.log('Set time sync mode to GPS');
+        break;
+      default:
+        console.error('Unknown time sync mode:', mode);
         break;
     }
   });

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 66,
+            "activePatchIndex": 70,
             "patches": [
                 {
                     "date": 1758605242207,
@@ -272,6 +272,22 @@
                 {
                     "date": 1760172256987,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -228,18 +228,18 @@\n     if (!port) return;\n \n     switch (message.cmd) {\n       case 'trigger':\n-        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, 1); // 单次触发模式\n+        send_cam_trigger_mode(port, trigger_mode.SINGLE, 1000, trigger_mode.SINGLE); // 单次触发模式\n         console.log('Sending trigger command');\n         break;\n       case 'pause':\n-        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, 0);\n+        send_cam_trigger_mode(port, trigger_mode.STOP, 1000, trigger_mode.STOP);\n         console.log('Sending pause command');\n         break;\n       case 'set-fps':\n         const frame_duration_ms = 1000.0 / message.fps;\n-        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, 0);\n+        send_cam_trigger_mode(port, trigger_mode.CONTINUOUS, frame_duration_ms, trigger_mode.CONTINUOUS);\n         console.log(`Setting camera FPS to ${message.fps}, frame_duration_ms: ${frame_duration_ms}ms`);\n         break;\n     }\n   });\n"
+                },
+                {
+                    "date": 1760174386534,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -209,9 +209,9 @@\n     dfu.stderr.on(\"data\", (data) => {\n       mainWindow?.webContents.send(\"flash-status\", data.toString(), \"error\");\n     });\n     dfu.on(\"close\", (code) => {\n-      if (code === 0) mainWindow?.webContents.send(\"flash-status\", \"烧录完成 ✅\", \"success\");\n+      if (code === 0) mainWindow?.webContents.send(\"flash-status\", \"烧录完成\", \"success\");\n       else mainWindow?.webContents.send(\"flash-status\", `烧录失败 (code=${code})`, \"error\");\n     });\n   });\n \n"
+                },
+                {
+                    "date": 1760347183566,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -243,8 +243,30 @@\n         break;\n     }\n   });\n \n+  ipcMain.on('set-time-sync-mode', (_event, mode: string) => {\n+    if (!port) return;\n+\n+    switch (mode) {\n+      case 'internal':\n+        \n+        console.log('Set time sync mode to internal');\n+        break;\n+      case 'external':\n+        \n+        console.log('Set time sync mode to external');\n+        break;\n+      case 'gps':\n+        \n+        console.log('Set time sync mode to GPS');\n+        break;\n+      default:\n+        console.error('Unknown time sync mode:', mode);\n+        break;\n+    }\n+  });\n+\n   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {\n     callback({\n       responseHeaders: {\n         ...details.responseHeaders,\n"
+                },
+                {
+                    "date": 1760347290646,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,8 +3,9 @@\n import os from 'os';\n import { exec, spawn } from 'child_process';\n import { SerialPort } from 'serialport';\n import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode } from './handle_mavlink';\n+import { send } from 'node-mavlink';\n const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');\n \n let mainWindow: BrowserWindow | null = null;\n let port: SerialPort | null = null;\n@@ -248,17 +249,17 @@\n     if (!port) return;\n \n     switch (mode) {\n       case 'internal':\n-        \n+        send_time_sync_mode(port, 0);\n         console.log('Set time sync mode to internal');\n         break;\n       case 'external':\n-        \n+        send_time_sync_mode(port, 1);\n         console.log('Set time sync mode to external');\n         break;\n       case 'gps':\n-        \n+        send_time_sync_mode(port, 2);\n         console.log('Set time sync mode to GPS');\n         break;\n       default:\n         console.error('Unknown time sync mode:', mode);\n"
+                },
+                {
+                    "date": 1760347319446,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n import {join} from 'path';\n import os from 'os';\n import { exec, spawn } from 'child_process';\n import { SerialPort } from 'serialport';\n-import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode } from './handle_mavlink';\n+import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode, send_time_sync_mode } from './handle_mavlink';\n import { send } from 'node-mavlink';\n const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');\n \n let mainWindow: BrowserWindow | null = null;\n"
                 }
             ],
             "date": 1758605242207,

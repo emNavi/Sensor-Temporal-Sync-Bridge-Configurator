@@ -7,8 +7,8 @@
                         <el-form :model="boardSettings" label-position="left" label-width="140px">
                             <el-divider content-position="left">ID 设置</el-divider>
 
-                            <!-- <el-form-item label="同步板 ID:">
-                            <el-input-number
+                            <el-form-item label="同步板 ID:">
+                            <!-- <el-input-number
                                 v-model="boardSettings.syncBoardId"
                                 :min="1"
                                 :max="255"
@@ -16,8 +16,20 @@
                                 style="width: 120px; margin-right: 12px"
                             />
 
-                            <el-button type="primary" @click="saveBoardSettings">设置</el-button>
-                            </el-form-item> -->
+                            <el-button type="primary" @click="saveBoardSettings">设置</el-button> -->
+                            </el-form-item>
+
+                            <el-divider content-position="left">同步方式设置</el-divider>
+
+                            <el-form-item label="时间源:">
+                                <el-radio-group v-model="boardSettings.syncMode">
+                                    <el-radio label="internal">同步板Boot时间</el-radio>
+                                    <el-radio label="external">上位机系统时间</el-radio>
+                                    <el-radio label="gps" :disabled="true">GPS时间</el-radio>
+                                </el-radio-group>
+
+                                <el-button type="primary" @click="setTimeSyncMode" style="margin-left: 12px;">设置</el-button>
+                            </el-form-item>
                         </el-form>
                     </el-tab-pane>
 
@@ -86,6 +98,7 @@ interface CameraSettings {
 // 板载配置
 interface BoardSettings {
     syncBoardId: number;
+    syncMode: 'internal' | 'external' | 'gps';
 }
 
 // 相机同步：单次触发
@@ -128,6 +141,7 @@ const settings = reactive<CameraSettings>({
 // 板载配置
 const boardSettings = reactive<BoardSettings>({
     syncBoardId: 1,
+    syncMode: 'internal', // 'internal' | 'external' | 'gps'
 });
 
 onMounted(() => {
@@ -211,5 +225,10 @@ const saveBoardSettings = () => {
     localStorage.setItem('boardSettings', JSON.stringify(boardSettings));
     emit('board-settings-updated', boardSettings);
     ElMessage.success(`同步板 ID 已设置为 ${boardSettings.syncBoardId}`);
+};
+
+const setTimeSyncMode = () => {
+    window.electronAPI.setTimeSyncMode(boardSettings.syncMode);
+    ElMessage.success(`时间源已设置为 ${boardSettings.syncMode}`);
 };
 </script>

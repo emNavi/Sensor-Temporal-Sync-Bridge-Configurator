@@ -49,7 +49,6 @@ export function handle_mavlink_msg(packet,mainWindow,port){
     }
     const clazz = REGISTRY[packet.header.msgid]
     if (clazz) {
-      console.log(`Received message: ${clazz.MSG_NAME}`);
       const data = packet.protocol.data(packet.payload, clazz)
       if(clazz.MSG_NAME === "HEARTBEAT"){
         // const timestamp = new Date().toISOString();
@@ -200,6 +199,22 @@ export function send_cam_trigger_mode(port, continuously, frame_duration_ms, tri
     send(port, msg, new MavLinkProtocolV2());
   }
 }
+
+export function send_time_sync_mode(port, mode) {
+  const msg = new common.CommandInt();
+  msg.targetSystem = 1;
+  msg.targetComponent = 1;
+  msg.command = 183; 
+  msg._param1 = mode;  // 0: internal, 1: external, 2: GPS
+  msg._param2 = 0;  
+  msg._param3 = 0;
+  msg._param4 = 0;
+  if(port){
+    console.log("Sending time sync mode...");
+    send(port, msg, new MavLinkProtocolV2());
+  }
+}
+
 export function send_upgrade_request(port) {
   const msg = new common.CommandInt();
   msg.targetSystem = 1;

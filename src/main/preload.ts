@@ -38,12 +38,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFlashStatus: (callback: (msg: string, type: string) => void) => ipcRenderer.on("flash-status", (_, msg, type) => callback(msg, type)) ,
   onDfuDetected: (callback) => ipcRenderer.on("dfu-device-detected", callback),
   onDfuNotFound: (callback) => ipcRenderer.on("dfu-device-not-found", callback),
-  
+
   removeDfuDetectedListener: () => ipcRenderer.removeAllListeners("dfu-device-detected"),
   removeDfuNotFoundListener: () => ipcRenderer.removeAllListeners("dfu-device-not-found"),
 
   // camera
   sendCameraCommand: (message: JSON) => ipcRenderer.send('send-camera-command', message),
   onCameraTrigger: (callback: (msg) => void) => ipcRenderer.on('camera-trigger', (_, msg) => callback(msg)),
+
+  // board settings
+  setTimeSyncMode: (mode: string) => ipcRenderer.send('set-time-sync-mode', mode),
 
 })
