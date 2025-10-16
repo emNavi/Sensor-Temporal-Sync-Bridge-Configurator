@@ -152,9 +152,9 @@ window.electronAPI.onHighresImu((data: any) => {
     if (imuSensor) {
         // imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
         // imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
-        imuSensor.metadata.Roll = `${data.gyro.x.toFixed(1)}°`;
+        imuSensor.metadata.Yaw = `${data.gyro.x.toFixed(1)}°`;
         imuSensor.metadata.Pitch = `${data.gyro.y.toFixed(1)}°`;
-        imuSensor.metadata.Yaw = `${data.gyro.z.toFixed(1)}°`;
+        imuSensor.metadata.Roll = `${data.gyro.z.toFixed(1)}°`;
     }
     const baroSensor = sensors.find(sensor => sensor.name === "气压计");
     if (baroSensor) {
