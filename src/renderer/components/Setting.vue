@@ -25,7 +25,7 @@
                                 <el-radio-group v-model="boardSettings.syncMode">
                                     <el-radio label="internal">同步板Boot时间</el-radio>
                                     <el-radio label="external">上位机系统时间</el-radio>
-                                    <el-radio label="gps" :disabled="true">GPS时间</el-radio>
+                                    <el-radio label="gps">GPS时间</el-radio>
                                 </el-radio-group>
 
                                 <el-button type="primary" @click="setTimeSyncMode" style="margin-left: 12px;">设置</el-button>
