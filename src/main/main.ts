@@ -21,10 +21,19 @@ async function listPorts(): Promise<{ path: string; friendlyName?: string }[]> {
   console.log(`Listing ports on platform: ${platform}`);
   if (platform === 'win32') {
     const ports = await SerialPort.list();
-    return ports.map(p => ({
-      path: p.path,
-      friendlyName: p.manufacturer || p.path   
-    }));
+    return ports.map(p => {
+      let friendlyName = p.path; // 默认使用 COM 端口号
+      
+      // 如果有制造商信息，添加到名称中
+      if (p.manufacturer) {
+        friendlyName = `${p.path} - ${p.manufacturer}`;
+      }
+      
+      return {
+        path: p.path,
+        friendlyName
+      };
+    });
   } else {
     // Linux: 只列出 /dev/ttyACM*
     return new Promise((resolve) => {
