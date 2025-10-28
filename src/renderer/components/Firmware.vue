@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElLoading } from 'element-plus';
 import { useDeviceStore } from '../store/device';
 
 const deviceStore = useDeviceStore();
@@ -49,11 +49,20 @@ const statusType = ref<'info' | 'success' | 'warning' | 'error'>('info');
 const progress = ref(-1);
 const flashDone = ref(false);
 
+let loadingInstance: any = null; // 用来保存加载提示实例
+
 const enterDfu = () => {
     if( !deviceStore.isConnected) {
         ElMessage.error('请先连接设备');
         return;
     }
+
+    loadingInstance = ElLoading.service({
+        lock: true,
+        text: '正在进入 DFU 模式，请稍候…',
+        background: 'rgba(0, 0, 0, 0.4)',
+    });
+
     window.electronAPI.enterDfuMode();
 };
 
@@ -77,12 +86,20 @@ onMounted(() => {
     });
 
     window.electronAPI.onDfuDetected(() => {
+        if (loadingInstance) {
+            loadingInstance.close();
+            loadingInstance = null;
+        }
         ElMessage.success("已进入 DFU 模式！");
         statusMsg.value = "设备已进入 DFU 模式";
         statusType.value = "success";
     });
 
     window.electronAPI.onDfuNotFound(() => {
+        if (loadingInstance) {
+            loadingInstance.close();
+            loadingInstance = null;
+        }
         ElMessage.warning("未检测到 DFU 设备，请检查连接或尝试重新插拔");
         statusMsg.value = "未检测到 DFU 设备";
         statusType.value = "warning";
