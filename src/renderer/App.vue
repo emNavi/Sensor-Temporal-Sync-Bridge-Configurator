@@ -48,7 +48,7 @@
       </div>
 
       <!-- 固件版本 -->
-      <p class="version">V{{ version }}-electron-dev</p>
+      <p class="version">V{{ version }}-sensor-bridge</p>
     </el-footer>
   </main>
 </template>
