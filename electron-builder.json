@@ -42,5 +42,12 @@
     "asarUnpack": [
         "**/node_modules/serialport/**",
         "**/node_modules/@serialport/**"
+    ],
+    "extraResources":[
+        {
+            "from":"resources/tools",
+            "to":"tools"
+        }
     ]
+
 }

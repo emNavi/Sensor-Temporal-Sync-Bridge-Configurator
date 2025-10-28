@@ -1,5 +1,6 @@
 import {app, BrowserWindow, ipcMain, session, dialog} from 'electron';
 import {join} from 'path';
+import path from "path";
 import os from 'os';
 import { exec, spawn } from 'child_process';
 import { SerialPort } from 'serialport';
@@ -211,8 +212,16 @@ app.whenReady().then(() => {
       mainWindow?.webContents.send("flash-status", "未选择固件文件", "error");
       return;
     }
+
+    const platform = os.platform();
+    let dfuCmd = "dfu-util";
+    if(platform === "win32"){
+      const exePath = path.join(process.resourcesPath,"tools","dfu-util.exe");
+      dfuCmd = exePath;
+    }
+
     const args = ["-a", "0", "-s", "0x08000000:leave", "-D", firmwarePath];
-    const dfu = spawn("dfu-util", args);
+    const dfu = spawn(dfuCmd, args);
     dfu.stdout.on("data", (data) => {
       mainWindow?.webContents.send("flash-status", data.toString(), "info");
     });
