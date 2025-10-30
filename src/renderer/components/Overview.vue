@@ -148,14 +148,12 @@ window.electronAPI.onTimeUpdate((data: TimeUpdateData) => {
 });
 window.electronAPI.onHighresImu((data: any) => {
     //console.log("onHighresImu");
-    const imuSensor = sensors.find(sensor => sensor.name === "IMU");
-    if (imuSensor) {
+    // const imuSensor = sensors.find(sensor => sensor.name === "IMU");
+    // if (imuSensor) {
         // imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
         // imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
-        imuSensor.metadata.Yaw = `${data.gyro.x.toFixed(1)}°`;
-        imuSensor.metadata.Pitch = `${data.gyro.y.toFixed(1)}°`;
-        imuSensor.metadata.Roll = `${data.gyro.z.toFixed(1)}°`;
-    }
+
+    // }
     const baroSensor = sensors.find(sensor => sensor.name === "气压计");
     if (baroSensor) {
         baroSensor.metadata.pressure = `${data.baro.abs_pressure.toFixed(2)} hPa`;
@@ -168,7 +166,17 @@ window.electronAPI.onHighresImu((data: any) => {
         magSensor.metadata.magneticFieldZ = `${data.mag.z.toFixed(2)} µT`;
     }
 });
-
+window.electronAPI.onAttitude((data: any) => {
+    console.log("onAttitude", data);
+    const imuSensor = sensors.find(sensor => sensor.name === "IMU");
+    if (imuSensor) {
+        // imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
+        // imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
+        imuSensor.metadata.Yaw = `${data.roll.toFixed(1)}°`;
+        imuSensor.metadata.Pitch = `${data.pitch.toFixed(1)}°`;
+        imuSensor.metadata.Roll = `${data.yaw.toFixed(1)}°`;
+    }
+});
 </script>
 
 <style scoped>
