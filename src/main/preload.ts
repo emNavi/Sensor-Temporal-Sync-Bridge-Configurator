@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onLog: (callback: (msg: string) => void) => ipcRenderer.on('status-log', (_, msg) => callback(msg)),
   onTimeUpdate: (callback: (msg) => void) => ipcRenderer.on('time-update', (_, msg) => callback(msg)),
   onHighresImu: (callback: (msg) => void) => ipcRenderer.on('sensor-data', (_, msg) => callback(msg)),
-  
+  onAttitude: (callback: (msg) => void) => ipcRenderer.on('attitude-data', (_, msg) => callback(msg)),
   openNewWindowWithOptions: (url: string, options: any) => ipcRenderer.send('open-new-window-with-options', url, options),
   sendMessage: (message: string) => ipcRenderer.send('message', message),
 

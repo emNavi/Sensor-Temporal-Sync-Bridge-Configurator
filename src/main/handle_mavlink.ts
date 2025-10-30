@@ -131,6 +131,16 @@ export function handle_mavlink_msg(packet,mainWindow,port){
         // console.log("✅ HIGHRES_IMU received:", data);
         mainWindow.webContents.send('sensor-data', sensor_data);
       }
+      else if(clazz.MSG_NAME === "ATTITUDE"){
+        const attitude_data = {
+          timeUsec: data.timeUsec,
+          roll: data.roll,
+          pitch: data.pitch,
+          yaw: data.yaw,
+        };
+        console.log("✅ ATTITUDE received:", data);
+        mainWindow.webContents.send('attitude-data', attitude_data);
+      }
       else if(clazz.MSG_NAME === "COMMAND_ACK"){       // 处理命令确认
         console.log(`COMMAND_ACK received: ${data.command} ${data.result}`);
         if(data.command === 241){ // MAV_CMD_PREFLIGHT_CALIBRATION
