@@ -2,7 +2,7 @@ import {app, BrowserWindow, ipcMain, session, dialog} from 'electron';
 import {join} from 'path';
 import path from "path";
 import os from 'os';
-import { exec, spawn } from 'child_process';
+import { exec, spawn, execFile } from 'child_process';
 import { SerialPort } from 'serialport';
 import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode, send_time_sync_mode } from './handle_mavlink';
 import { send } from 'node-mavlink';
@@ -112,26 +112,23 @@ function disconnectDevice() {
 
 function checkForDFUDevice(): Promise<boolean> {
   return new Promise((resolve) => {
-    if (process.platform === "linux") {
-      // Linux 下通过 lsusb 判断
-      exec("lsusb", (error, stdout) => {
-        if (error) return resolve(false);
-        resolve(stdout.includes("0483:df11"));
-      });
-    } else if (process.platform === "win32") {
-      // Windows 下通过 wmic 检查 USB 设备
-      exec(
-        "wmic path Win32_PnPEntity get DeviceID,Name",
-        { encoding: "utf8" },
-        (error, stdout) => {
-          if (error) return resolve(false);
-          resolve(stdout.includes("VID_0483&PID_DF11"));
-        }
-      );
-    } else {
-      // 其他平台暂不支持
-      resolve(false);
-    }
+    const dfuPath =
+      process.platform === "win32"
+        ? path.join(process.resourcesPath, "tools", "dfu-util.exe")
+        : "dfu-util";
+    execFile(dfuPath, ["-l"], { windowsHide: true }, (error, stdout) => {
+      if (error) {
+        console.log("DFU check error:", error);
+        return resolve(false);
+      }
+
+      // 检测 STM32 DFU VID/PID
+      const found =
+        stdout.includes("0483") &&
+        (stdout.includes("df11") || stdout.includes("DF11"));
+
+      resolve(found);
+    });
   });
 }
 
