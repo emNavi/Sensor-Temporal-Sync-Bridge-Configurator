@@ -167,11 +167,9 @@ window.electronAPI.onHighresImu((data: any) => {
     }
 });
 window.electronAPI.onAttitude((data: any) => {
-    console.log("onAttitude", data);
+    // console.log("onAttitude", data);
     const imuSensor = sensors.find(sensor => sensor.name === "IMU");
     if (imuSensor) {
-        // imuSensor.metadata.acceleration = `${data.acc.x.toFixed(2)}, ${data.acc.y.toFixed(2)}, ${data.acc.z.toFixed(2)} m/s²`;
-        // imuSensor.metadata.angularVelocity = `${data.gyro.x.toFixed(3)}, ${data.gyro.y.toFixed(3)}, ${data.gyro.z.toFixed(3)} rad/s`;
         imuSensor.metadata.Yaw = `${data.roll.toFixed(1)}°`;
         imuSensor.metadata.Pitch = `${data.pitch.toFixed(1)}°`;
         imuSensor.metadata.Roll = `${data.yaw.toFixed(1)}°`;

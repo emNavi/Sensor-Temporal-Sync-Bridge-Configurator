@@ -42,6 +42,7 @@ export function is_device_online() {
     }
     return device_online;
 }
+let lastAttitudeTime: number | null = null;
 export function handle_mavlink_msg(packet,mainWindow,port){
     if (!mainWindow || mainWindow.isDestroyed()) {
       console.warn('[electron] mainWindow 不存在或已销毁，丢弃消息');
@@ -138,7 +139,7 @@ export function handle_mavlink_msg(packet,mainWindow,port){
           pitch: data.pitch,
           yaw: data.yaw,
         };
-        console.log("✅ ATTITUDE received:", data);
+        // console.log("✅ ATTITUDE received:", data);
         mainWindow.webContents.send('attitude-data', attitude_data);
       }
       else if(clazz.MSG_NAME === "COMMAND_ACK"){       // 处理命令确认
