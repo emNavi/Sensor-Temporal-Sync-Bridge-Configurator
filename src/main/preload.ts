@@ -1,5 +1,6 @@
 import {contextBridge, ipcRenderer} from 'electron';
 import { on } from 'events';
+import { char } from 'node-mavlink';
 import { onUpdated } from 'vue';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -14,7 +15,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 心跳状态
   heartBeatStatusMessage: (callback) => ipcRenderer.on('heartbeat-status', (_event, value) => callback(value)),
 
-  onLog: (callback: (msg: string) => void) => ipcRenderer.on('status-log', (_, msg) => callback(msg)),
+  // onLog: (callback: (msg: string) => void) => ipcRenderer.on('status-log', (_, msg) => callback(msg)),
+  onLog: (callback: (msg: string, severity: char) => void) => ipcRenderer.on('status-log', (_, msg, severity) => callback(msg, severity)),
+  enableDebugMode: (flag) => ipcRenderer.send("set-debug-mode", flag),
+
   onTimeUpdate: (callback: (msg) => void) => ipcRenderer.on('time-update', (_, msg) => callback(msg)),
   onHighresImu: (callback: (msg) => void) => ipcRenderer.on('sensor-data', (_, msg) => callback(msg)),
   onAttitude: (callback: (msg) => void) => ipcRenderer.on('attitude-data', (_, msg) => callback(msg)),

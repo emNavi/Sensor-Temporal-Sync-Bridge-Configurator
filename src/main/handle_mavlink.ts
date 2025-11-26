@@ -67,6 +67,7 @@ export function handle_mavlink_msg(packet,mainWindow,port){
       else if (clazz.MSG_NAME === "STATUSTEXT") {
         const timestamp = new Date().toISOString();
         const statusText = data.text;
+        const severity = data.severity;
         console.log(`STATUSTEXT received at ${timestamp}: ${statusText}`);
         //先用\n分割
         console.log(`STATUSTEXT received at ${timestamp}: ${statusText.split('\n')[0]}`);
@@ -94,7 +95,7 @@ export function handle_mavlink_msg(packet,mainWindow,port){
         }
         else {
           // 普通日志输出
-          mainWindow.webContents.send("status-log", statusText);
+          mainWindow.webContents.send("status-log", statusText, severity);
         }
       }
       else if (clazz.MSG_NAME === "TIMESYNC") {
@@ -273,4 +274,25 @@ export function send_sensor_calib(port, acc=false,gyro=false,mag=false,baro=fals
   if(port){
     send(port,send_message,new MavLinkProtocolV2())
   }
+}
+
+export function sendMavlinkDebugOn(port) {
+  const msg = new common.LoggingStartCommand();
+  msg.targetSystem = 1;
+  msg.targetComponent = 1;
+  msg.format = 0;
+  if(port){
+    send(port, msg, new MavLinkProtocolV2());
+  }
+  console.log("Sent DEBUG ON command");
+}
+
+export function sendMavlinkDebugOff(port) {
+  const msg = new common.LoggingStopCommand();
+  msg.targetSystem = 1;
+  msg.targetComponent = 1;
+  if(port){
+    send(port, msg, new MavLinkProtocolV2());
+  }
+  console.log("Sent DEBUG OFF command");
 }

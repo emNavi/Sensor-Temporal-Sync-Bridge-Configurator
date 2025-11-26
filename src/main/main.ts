@@ -5,12 +5,14 @@ import os from 'os';
 import { exec, spawn, execFile } from 'child_process';
 import { SerialPort } from 'serialport';
 import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode, send_time_sync_mode } from './handle_mavlink';
+import { sendMavlinkDebugOn, sendMavlinkDebugOff } from './handle_mavlink';
 import { send } from 'node-mavlink';
 const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');
 
 let mainWindow: BrowserWindow | null = null;
 let port: SerialPort | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
+let debugEnabled = false;
 
 enum trigger_mode {
   CONTINUOUS = 0,
@@ -280,6 +282,16 @@ app.whenReady().then(() => {
         console.error('Unknown time sync mode:', mode);
         break;
     }
+  });
+
+  // debug mode
+  ipcMain.on("set-debug-mode", (_event, flag) => {
+    debugEnabled = flag;
+    if (!port) return;
+
+    if (flag) sendMavlinkDebugOn(port);
+    else sendMavlinkDebugOff(port);
+
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
