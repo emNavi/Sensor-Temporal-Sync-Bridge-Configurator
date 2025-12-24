@@ -1,7 +1,5 @@
 import {contextBridge, ipcRenderer} from 'electron';
-import { on } from 'events';
 import { char } from 'node-mavlink';
-import { onUpdated } from 'vue';
 
 contextBridge.exposeInMainWorld('electronAPI', {
     // nodejs 向 renderer 发送消息
@@ -52,5 +50,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // board settings
   setTimeSyncMode: (mode: string) => ipcRenderer.send('set-time-sync-mode', mode),
+  // request param
+  requestParam: (ComponentID: number) => ipcRenderer.send('request-param', ComponentID),
+  onParamValue: (callback) => { const listener = (_event, msg) => callback(msg); ipcRenderer.on('param-value', listener); return () => { ipcRenderer.removeListener('param-value', listener); }; },
+  // reboot device
+  rebootDevice: () => ipcRenderer.send('reboot-device'),
 
 })

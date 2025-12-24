@@ -60,11 +60,9 @@ import { ref, onMounted } from 'vue';
 import { useDeviceStore } from './store/device';
 
 const deviceStore = useDeviceStore();
-const isConnected = ref(false);          // 心跳更新
 const ports = ref<{ path: string; friendlyName?: string }[]>([]);
 const selectedPort = ref('');
-const connectedPort = ref('');
-const deviceId = ref<number | null>(null); // 设备 ID
+
 
 // 点击连接按钮 -> 发送命令给主进程
 const connectDevice = () => {

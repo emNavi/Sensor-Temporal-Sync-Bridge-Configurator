@@ -166,6 +166,14 @@ export function handle_mavlink_msg(packet,mainWindow,port){
           });
         }
       }
+      else if(clazz.MSG_NAME === "PARAM_VALUE"){
+        
+        console.log(`PARAM_VALUE received: ${data.paramId} = ${data.paramValue}`);
+        mainWindow.webContents.send('param-value', {
+          paramId: data.paramId,
+          paramValue: data.paramValue,
+        });
+      }
       else{
         console.log(`Received message: ${clazz.MSG_NAME}`);
         console.log(packet)
@@ -295,4 +303,29 @@ export function sendMavlinkDebugOff(port) {
     send(port, msg, new MavLinkProtocolV2());
   }
   console.log("Sent DEBUG OFF command");
+}
+
+export function sendMavlinkRequestParam(port, ComponentID) {
+  const msg = new common.ParamRequestList();
+  msg.targetSystem = 1;
+  msg.targetComponent = ComponentID;
+  if(port){
+    send(port, msg, new MavLinkProtocolV2());
+  }
+  console.log(`Sent PARAM_REQUEST_READ on ComponentID: ${ComponentID}`);
+}
+
+export function sendRebootCommand(port) {
+  const msg = new common.CommandInt();
+  msg.targetSystem = 1;
+  msg.targetComponent = 1;
+  msg.command = 246; // MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN
+  msg._param1 = 2;  
+  msg._param2 = 0;  
+  msg._param3 = 0;
+  msg._param4 = 0;
+  if(port){
+    console.log("Sending reboot command...");
+    send(port, msg, new MavLinkProtocolV2());
+  }
 }

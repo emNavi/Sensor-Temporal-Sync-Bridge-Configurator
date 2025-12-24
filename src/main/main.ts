@@ -5,7 +5,7 @@ import os from 'os';
 import { exec, spawn, execFile } from 'child_process';
 import { SerialPort } from 'serialport';
 import { printHello, handle_mavlink_msg, is_device_online, send_sensor_calib, send_upgrade_request, send_cam_trigger_interval,send_cam_trigger_mode, send_time_sync_mode } from './handle_mavlink';
-import { sendMavlinkDebugOn, sendMavlinkDebugOff } from './handle_mavlink';
+import { sendMavlinkDebugOn, sendMavlinkDebugOff, sendMavlinkRequestParam, sendRebootCommand } from './handle_mavlink';
 import { send } from 'node-mavlink';
 const { MavLinkPacketSplitter, MavLinkPacketParser } = require('node-mavlink');
 
@@ -283,7 +283,14 @@ app.whenReady().then(() => {
         break;
     }
   });
-
+  ipcMain.on('request-param', (_event, ComponentID) => {
+    if (!port) return;
+    sendMavlinkRequestParam(port, ComponentID);
+  });
+  ipcMain.on('reboot-device', () => {
+    if (!port) return;
+    sendRebootCommand(port);
+  });
   // debug mode
   ipcMain.on("set-debug-mode", (_event, flag) => {
     debugEnabled = flag;
