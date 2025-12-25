@@ -11,7 +11,7 @@ const REGISTRY = {
   ...uavionix.REGISTRY,
   ...icarous.REGISTRY,
 }
-
+let sync_status = false;
 let device_online = false;
 let last_heartbeat_time = 0;
 let current_device_id: number | null = null; // 当前连接的设备ID
@@ -56,11 +56,14 @@ export function handle_mavlink_msg(packet,mainWindow,port){
         last_heartbeat_time = Date.now();
         device_online = true;
         current_device_id = packet.header.sysid; // 更新当前设备ID
-
+        sync_status = data.customMode;
         // 通知前端有心跳 + ID
         mainWindow.webContents.send('heartbeat', {
           id: current_device_id,
           timestamp: new Date().toISOString(),
+        });
+        mainWindow.webContents.send('sync-status',{
+          syncStatus: sync_status,
         });
         // console.log(`HEARTBEAT received at ${timestamp}`);
       }

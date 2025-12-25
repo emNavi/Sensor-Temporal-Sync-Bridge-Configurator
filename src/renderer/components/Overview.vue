@@ -58,9 +58,9 @@ const sensors = reactive<Sensor[]>([
         id: 1, 
         name: "系统时间", 
         metadata: {
-            syncStatus: "已同步", 
+            syncStatus: "未同步", 
             hardwareTime: "2023-10-01 11:59:58", 
-            startTime: "2023-10-01 08:00:00"
+            startTime: "0时 0分 0秒"
         },
         metadescribe: {
             syncStatus: "同步状态",
@@ -134,7 +134,12 @@ declare global {
         onHighresImu(callback: (data: any) => void): void;
     }
 }
-
+window.electronAPI.onTimeSyncStatus((data: {syncStatus: boolean}) => {
+    const systemTimeSensor = sensors.find(sensor => sensor.name === "系统时间");
+    if (systemTimeSensor) {
+        systemTimeSensor.metadata.syncStatus = data.syncStatus ? "已同步" : "未同步";
+    }
+});
 window.electronAPI.onTimeUpdate((data: TimeUpdateData) => {
     console.log("onTimeUpdate", data);
     const systemTimeSensor = sensors.find(sensor => sensor.name === "系统时间");

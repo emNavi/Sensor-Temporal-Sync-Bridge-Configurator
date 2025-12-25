@@ -12,7 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onHeartbeat: (callback: (data: {id: number, timestamp: string}) => void) => ipcRenderer.on('heartbeat', (_event, data) => callback(data)),
   // 心跳状态
   heartBeatStatusMessage: (callback) => ipcRenderer.on('heartbeat-status', (_event, value) => callback(value)),
-
+  // 同步状态
+  onTimeSyncStatus: (callback: (data: {syncStatus: boolean}) => void) => ipcRenderer.on('sync-status', (_event, data) => callback(data)),
   // onLog: (callback: (msg: string) => void) => ipcRenderer.on('status-log', (_, msg) => callback(msg)),
   onLog: (callback: (msg: string, severity: char) => void) => ipcRenderer.on('status-log', (_, msg, severity) => callback(msg, severity)),
   enableDebugMode: (flag) => ipcRenderer.send("set-debug-mode", flag),
