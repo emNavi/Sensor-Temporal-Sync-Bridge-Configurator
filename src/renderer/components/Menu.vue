@@ -1,5 +1,5 @@
 <template>
-    <el-aside width="200px" style="background-color: #f2f2f2; padding: 10px; height: 80vh;">
+    <el-aside width="200px" class="side-menu">
         <el-menu 
             :default-active="route.path"   
             class="el-menu-vertical-demo"
@@ -39,9 +39,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue';
 import { House, Switch, SuccessFilled, WarningFilled, CircleCloseFilled, Aim, ChatDotSquare, SetUp } from '@element-plus/icons-vue'
-import { de } from 'element-plus/es/locales.mjs';
 import { ElNotification } from 'element-plus'
 
 
@@ -100,7 +98,16 @@ const handleMenuSelect = (index) => {
 
 <style>
 .el-table .success-row {
-    /* --el-table-tr-bg-color: var(--el-color-warning-light-9); */
-    --el-table-tr-bg-color: #45553d96;
+    --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
+.side-menu-inner {
+    background-color: transparent;
+    border-right: none;
+}
+.side-menu {
+    padding: 10px;
+    height: 80vh;
+    background-color: var(--el-bg-color);
+    border-right: 1px solid var(--el-border-color);
 }
 </style>

@@ -178,7 +178,7 @@ const filteredLogs = computed(() => logs.value);
 }
 
 .log-content {
-    background-color: #f7f7f7;
+    background-color:var(--el-bg-color);
     border-radius: 5px;
     height: 55vh;
     overflow-y: auto;
