@@ -39,7 +39,8 @@
 
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
-
+import { useSettingsStore } from '../store/settings';
+const settingsStore = useSettingsStore();
 const systemTimeSensor = computed(() => sensors.find(s => s.name === "系统时间"));
 const otherSensors = computed(() => sensors.filter(s => s.name !== "系统时间"));
 
@@ -52,17 +53,23 @@ interface Sensor {
     status?: string;
     value?: string;
 }
-
+const syncModeMap = {
+    internal: '板载时间',
+    external: 'PC时间',
+    gps: 'GPS时间'
+};
 const sensors = reactive<Sensor[]>([
     { 
         id: 1, 
         name: "系统时间", 
         metadata: {
+            syncMode: "待连接",
             syncStatus: "未同步", 
             hardwareTime: "2023-10-01 11:59:58", 
             startTime: "0时 0分 0秒"
         },
         metadescribe: {
+            syncMode: "时间源",
             syncStatus: "同步状态",
             hardwareTime: "硬件时间",
             startTime: "Boot时间",
@@ -138,6 +145,7 @@ window.electronAPI.onTimeSyncStatus((data: {syncStatus: boolean}) => {
     const systemTimeSensor = sensors.find(sensor => sensor.name === "系统时间");
     if (systemTimeSensor) {
         systemTimeSensor.metadata.syncStatus = data.syncStatus ? "已同步" : "未同步";
+        systemTimeSensor.metadata.syncMode = syncModeMap[settingsStore.syncMode];
     }
 });
 window.electronAPI.onTimeUpdate((data: TimeUpdateData) => {
@@ -198,7 +206,7 @@ window.electronAPI.onAttitude((data: any) => {
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 15px;
-    width: 200px;
+    width: 220px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

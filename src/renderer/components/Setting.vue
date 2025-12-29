@@ -64,7 +64,7 @@
         </el-card>
         <!-- 底部操作区 -->
         <div class="bottom-actions">
-            <el-button type="primary" @click="requestDeviceParams">
+            <el-button type="info" @click="requestDeviceParams">
                 读取配置
             </el-button>
 
