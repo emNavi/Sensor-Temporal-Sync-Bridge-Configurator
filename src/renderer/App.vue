@@ -5,7 +5,11 @@
         <Menu />
       </el-aside>
       <el-main style="padding-left: 1px; padding-right: 1px; width: 90vh;">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </el-main>
     </el-container>
 

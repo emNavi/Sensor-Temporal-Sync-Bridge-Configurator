@@ -45,10 +45,15 @@
                     @click="showLogs = true"
                 >继续输出</el-button>
 
+                <el-button
+                    type="warning"
+                    plain
+                    @click="clearLogs"
+                >清空</el-button>
             </div>
 
             <!-- 日志内容 -->
-            <div class="log-content">
+            <div class="log-content" @scroll="onLogScroll">
                 <p
                     class="log-font"
                     v-for="(log, index) in filteredLogs"
@@ -58,13 +63,20 @@
                     <span>{{ index + 1 }}.</span> {{ log.text }}
                 </p>
             </div>
-
+            <!-- 新消息提示 -->
+            <div
+                v-if="showNewMsgHint"
+                class="new-msg-hint"
+                @click="scrollToBottom"
+            >
+                ⬇ 有 {{ unreadCount }} 条新消息
+            </div>
         </el-card>
     </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, onActivated } from 'vue';
 import { ElMessage } from 'element-plus';
 import { WarningFilled } from '@element-plus/icons-vue';
 
@@ -81,16 +93,33 @@ const severityMap = {
 
 // 所有日志
 const logs = ref([]);
-
 // 是否显示日志
 const showLogs = ref(true);
-
 // Debug 模式（决定是否接收 DEBUG 级别）
 const debugMode = ref(false);
-
 // 分类过滤（只用于 DEBUG）
 const filterCategories = ref(["IMU", "CAMERA", "LIDAR"]);
+// 未读新消息数量
+const unreadCount = ref(0)
+// 是否显示新消息提示
+const showNewMsgHint = ref(false)
 
+function isScrollAtBottom(el: HTMLElement, threshold = 10): boolean {
+    return el.scrollTop + el.clientHeight >= el.scrollHeight - threshold
+}
+const clearLogs = () => {
+    logs.value = [];
+    unreadCount.value = 0;
+    showNewMsgHint.value = false;
+
+    // 清空后顺便把滚动条复位到底部
+    requestAnimationFrame(() => {
+        const el = document.querySelector('.log-content') as HTMLElement | null;
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
+    });
+};
 const closeDebugMode = () => {
     if (debugMode.value) {
         debugMode.value = false;
@@ -112,6 +141,9 @@ onMounted(() => {
 
         if (!showLogs.value) return;
 
+        const el = document.querySelector('.log-content') as HTMLElement | null
+
+        const shouldAutoScroll = el ? isScrollAtBottom(el) : false
         // // ---- 处理 DEBUG 类型日志 ----
 
         if (severity === 7) {
@@ -131,13 +163,19 @@ onMounted(() => {
             class: sev.class
         });
 
-        // logs.value.push(msg);
-        // 自动滚动到底部
-        const el = document.querySelector(".log-content");
-        if (el) el.scrollTop = el.scrollHeight;
+        if (shouldAutoScroll) {
+            requestAnimationFrame(() => {
+                el.scrollTop = el.scrollHeight
+            })
+        } else {
+            unreadCount.value++
+            showNewMsgHint.value = true
+        }
     });
 });
-
+onActivated(() => {
+    scrollToBottom();
+});
 // -------------------------
 // 开关 Debug 模式
 // -------------------------
@@ -152,6 +190,24 @@ const onDebugModeChange = (value) => {
     }
 };
 
+const onLogScroll = (e: Event) => {
+    const el = e.target as HTMLElement
+    if (isScrollAtBottom(el)) {
+        unreadCount.value = 0
+        showNewMsgHint.value = false
+    }
+}
+
+const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+        const el = document.querySelector('.log-content') as HTMLElement | null;
+        if (!el) return;
+
+        el.scrollTop = el.scrollHeight;
+        unreadCount.value = 0;
+        showNewMsgHint.value = false;
+    });
+};
 onUnmounted(() => {
     closeDebugMode();
 });
@@ -194,30 +250,45 @@ const filteredLogs = computed(() => logs.value);
 }
 
 .log-error {
-    color: #d9534f;   /* 红色 */
+    color: #d9534f;   
     font-weight: bold;
 }
 
 .log-warning {
-    color: #f0ad4e;   /* 黄色 */
+    color: #f0ad4e;   
     font-weight: bold;
 }
 
 .log-critical, .log-alert, .log-emergency {
-    color: #d43f3a;   /* 深红色 */
+    color: #d43f3a;   
     font-weight: bold;
 }
 
 .log-info {
-    color: #0275d8;   /* 蓝色 */
+    color: #0275d8;   
 }
 
 .log-debug {
-    color: #777;      /* 灰色 */
+    color: #777;      
 }
 
 .log-notice {
-    color: #5bc0de;   /* 青色 */
+    color: #1ae970;   
+}
+
+.new-msg-hint {
+    position: sticky;
+    bottom: 10px;
+    margin: 0 auto;
+    width: fit-content;
+    padding: 6px 14px;
+    background-color: var(--el-color-primary);
+    color: white;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 </style>
