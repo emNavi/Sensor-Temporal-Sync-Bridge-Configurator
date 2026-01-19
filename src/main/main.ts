@@ -156,6 +156,7 @@ function createWindow () {
     width: 1300,
     height: 780,
     autoHideMenuBar: true,
+    icon: join(__dirname, 'icon.png'),
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -168,7 +169,7 @@ function createWindow () {
     const rendererPort = process.argv[2];
     mainWindow.loadURL(`http://localhost:${rendererPort}`);
   } else {
-    mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
+    mainWindow.loadFile(join(app.getAppPath(), 'build', 'renderer', 'index.html'));
   }
 
   mainWindow.on('closed', () => {
